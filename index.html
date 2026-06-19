@@ -7,10 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:#F5F6F8;}
-</style>
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Inter',sans-serif;background:#F5F6F8;}</style>
 </head>
 <body>
 <div id="root"></div>
@@ -23,20 +20,260 @@ function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArra
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 var _React = React,
   useState = _React.useState,
   useEffect = _React.useEffect;
+
+// ── SHEETS CONFIG ─────────────────────────────────────────
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbz1YHNIRp6RstMOhzAvXGzPSjiknRA9GisRV9zseneyp9DgRDpOmKl2eDbkeDNcE5rh/exec";
+function sheetsLoad() {
+  return _sheetsLoad.apply(this, arguments);
+}
+function _sheetsLoad() {
+  _sheetsLoad = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+    var res, json;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.n) {
+        case 0:
+          _context3.n = 1;
+          return fetch(SHEETS_URL + "?action=load");
+        case 1:
+          res = _context3.v;
+          _context3.n = 2;
+          return res.json();
+        case 2:
+          json = _context3.v;
+          if (json.ok) {
+            _context3.n = 3;
+            break;
+          }
+          throw new Error(json.error || "Error cargando datos");
+        case 3:
+          return _context3.a(2, json.data);
+      }
+    }, _callee3);
+  }));
+  return _sheetsLoad.apply(this, arguments);
+}
+function sheetsSave(_x) {
+  return _sheetsSave.apply(this, arguments);
+} // ── TOAST ─────────────────────────────────────────────────
+function _sheetsSave() {
+  _sheetsSave = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(data) {
+    var res, json;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          _context4.n = 1;
+          return fetch(SHEETS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              action: "save",
+              data: data
+            })
+          });
+        case 1:
+          res = _context4.v;
+          _context4.n = 2;
+          return res.json();
+        case 2:
+          json = _context4.v;
+          if (json.ok) {
+            _context4.n = 3;
+            break;
+          }
+          throw new Error(json.error || "Error guardando");
+        case 3:
+          return _context4.a(2, true);
+      }
+    }, _callee4);
+  }));
+  return _sheetsSave.apply(this, arguments);
+}
+function Toast(_ref) {
+  var msg = _ref.msg,
+    color = _ref.color,
+    onDone = _ref.onDone;
+  useEffect(function () {
+    var t = setTimeout(onDone, 3500);
+    return function () {
+      return clearTimeout(t);
+    };
+  }, []);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      bottom: 24,
+      right: 24,
+      padding: "12px 20px",
+      borderRadius: 10,
+      fontSize: 13,
+      fontWeight: 500,
+      color: "#fff",
+      background: color || GREEN,
+      zIndex: 9999,
+      boxShadow: "0 4px 16px rgba(0,0,0,.18)",
+      maxWidth: 360
+    }
+  }, msg);
+}
+
+// ── SYNC PANEL ────────────────────────────────────────────
+function SyncPanel(_ref2) {
+  var data = _ref2.data,
+    onImport = _ref2.onImport;
+  var _useState = useState(null),
+    _useState2 = _slicedToArray(_useState, 2),
+    status = _useState2[0],
+    setStatus = _useState2[1];
+  var _useState3 = useState(false),
+    _useState4 = _slicedToArray(_useState3, 2),
+    loading = _useState4[0],
+    setLoading = _useState4[1];
+  function exportar() {
+    return _exportar.apply(this, arguments);
+  }
+  function _exportar() {
+    _exportar = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            setLoading(true);
+            _context.p = 1;
+            _context.n = 2;
+            return sheetsSave(data);
+          case 2:
+            setStatus({
+              msg: "✅ Datos exportados a Google Sheets correctamente",
+              color: GREEN
+            });
+            _context.n = 4;
+            break;
+          case 3:
+            _context.p = 3;
+            _t = _context.v;
+            setStatus({
+              msg: "❌ Error al exportar: " + _t.message,
+              color: RED
+            });
+          case 4:
+            setLoading(false);
+          case 5:
+            return _context.a(2);
+        }
+      }, _callee, null, [[1, 3]]);
+    }));
+    return _exportar.apply(this, arguments);
+  }
+  function importar() {
+    return _importar.apply(this, arguments);
+  }
+  function _importar() {
+    _importar = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+      var d, _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            if (window.confirm("¿Importar datos desde Google Sheets?\nEsto reemplazará los datos actuales del dashboard.")) {
+              _context2.n = 1;
+              break;
+            }
+            return _context2.a(2);
+          case 1:
+            setLoading(true);
+            _context2.p = 2;
+            _context2.n = 3;
+            return sheetsLoad();
+          case 3:
+            d = _context2.v;
+            onImport(migrate(d));
+            setStatus({
+              msg: "✅ Datos importados desde Google Sheets",
+              color: GREEN
+            });
+            _context2.n = 5;
+            break;
+          case 4:
+            _context2.p = 4;
+            _t2 = _context2.v;
+            setStatus({
+              msg: "❌ Error al importar: " + _t2.message,
+              color: RED
+            });
+          case 5:
+            setLoading(false);
+          case 6:
+            return _context2.a(2);
+        }
+      }, _callee2, null, [[2, 4]]);
+    }));
+    return _importar.apply(this, arguments);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: _objectSpread(_objectSpread({}, cs.card), {}, {
+      borderLeft: "3px solid ".concat(MAGENTA)
+    })
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 600,
+      color: NAVY,
+      fontFamily: "Poppins,sans-serif",
+      marginBottom: 6
+    }
+  }, "\uD83D\uDD04 Sincronizaci\xF3n con Google Sheets"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: SLATE,
+      marginBottom: 12
+    }
+  }, "Los datos viven en tu navegador. Exporta para respaldar en Sheets, o importa para restaurar desde Sheets."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: exportar,
+    disabled: loading,
+    style: _objectSpread(_objectSpread({}, cs.btnP), {}, {
+      opacity: loading ? 0.6 : 1,
+      cursor: loading ? "not-allowed" : "pointer"
+    })
+  }, loading ? "Procesando..." : "⬆️ Exportar a Sheets"), /*#__PURE__*/React.createElement("button", {
+    onClick: importar,
+    disabled: loading,
+    style: _objectSpread(_objectSpread({}, cs.btnS), {}, {
+      opacity: loading ? 0.6 : 1,
+      cursor: loading ? "not-allowed" : "pointer"
+    })
+  }, loading ? "Procesando..." : "⬇️ Importar desde Sheets")), status && /*#__PURE__*/React.createElement(Toast, {
+    msg: status.msg,
+    color: status.color,
+    onDone: function onDone() {
+      return setStatus(null);
+    }
+  }));
+}
 var SK = "hkx_fin_v9";
 var NAVY = "#0D1B2A",
   MAGENTA = "#CB6CE6",
@@ -275,11 +512,11 @@ var cs = {
     display: "block"
   }
 };
-function Metric(_ref) {
-  var label = _ref.label,
-    val = _ref.val,
-    color = _ref.color,
-    sub = _ref.sub;
+function Metric(_ref3) {
+  var label = _ref3.label,
+    val = _ref3.val,
+    color = _ref3.color,
+    sub = _ref3.sub;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: CLOUD,
@@ -310,8 +547,8 @@ function Metric(_ref) {
     }
   }, sub));
 }
-function Badge(_ref2) {
-  var estado = _ref2.estado;
+function Badge(_ref4) {
+  var estado = _ref4.estado;
   var m = {
     "Pagado": [GREEN + "22", GREEN],
     "Pendiente": [AMBER + "22", AMBER],
@@ -331,10 +568,10 @@ function Badge(_ref2) {
     "Prospecto": [PURPLE + "22", PURPLE],
     "Pagada": [GREEN + "22", GREEN]
   };
-  var _ref3 = m[estado] || [SLATE + "22", SLATE],
-    _ref4 = _slicedToArray(_ref3, 2),
-    bg = _ref4[0],
-    col = _ref4[1];
+  var _ref5 = m[estado] || [SLATE + "22", SLATE],
+    _ref6 = _slicedToArray(_ref5, 2),
+    bg = _ref6[0],
+    col = _ref6[1];
   return /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 11,
@@ -347,10 +584,10 @@ function Badge(_ref2) {
     }
   }, estado);
 }
-function Modal(_ref5) {
-  var title = _ref5.title,
-    onClose = _ref5.onClose,
-    children = _ref5.children;
+function Modal(_ref7) {
+  var title = _ref7.title,
+    onClose = _ref7.onClose,
+    children = _ref7.children;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
@@ -398,9 +635,9 @@ function Modal(_ref5) {
     })
   }, "\xD7")), children));
 }
-function Row(_ref6) {
-  var children = _ref6.children,
-    cols = _ref6.cols;
+function Row(_ref8) {
+  var children = _ref8.children,
+    cols = _ref8.cols;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -410,16 +647,16 @@ function Row(_ref6) {
     }
   }, children);
 }
-function Fld(_ref7) {
-  var label = _ref7.label,
-    children = _ref7.children;
+function Fld(_ref9) {
+  var label = _ref9.label,
+    children = _ref9.children;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: cs.lbl
   }, label), children);
 }
-function SaveCancel(_ref8) {
-  var onSave = _ref8.onSave,
-    onCancel = _ref8.onCancel;
+function SaveCancel(_ref0) {
+  var onSave = _ref0.onSave,
+    onCancel = _ref0.onCancel;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -435,10 +672,10 @@ function SaveCancel(_ref8) {
     style: cs.btnP
   }, "Guardar"));
 }
-function Tabs(_ref9) {
-  var tabs = _ref9.tabs,
-    active = _ref9.active,
-    onChange = _ref9.onChange;
+function Tabs(_ref1) {
+  var tabs = _ref1.tabs,
+    active = _ref1.active,
+    onChange = _ref1.onChange;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -470,23 +707,23 @@ function Tabs(_ref9) {
 }
 
 // ── INLINE LIST ─────────────────────────────────────────
-function InlineList(_ref0) {
-  var items = _ref0.items,
-    cols = _ref0.cols,
-    renderRow = _ref0.renderRow,
-    addForm = _ref0.addForm,
-    editForm = _ref0.editForm,
-    editId = _ref0.editId,
-    onStartEdit = _ref0.onStartEdit,
-    onCancelEdit = _ref0.onCancelEdit,
-    onSaveEdit = _ref0.onSaveEdit,
-    onDel = _ref0.onDel,
-    emptyMsg = _ref0.emptyMsg,
-    btnLabel = _ref0.btnLabel;
-  var _useState = useState(false),
-    _useState2 = _slicedToArray(_useState, 2),
-    showAdd = _useState2[0],
-    setShowAdd = _useState2[1];
+function InlineList(_ref10) {
+  var items = _ref10.items,
+    cols = _ref10.cols,
+    renderRow = _ref10.renderRow,
+    addForm = _ref10.addForm,
+    editForm = _ref10.editForm,
+    editId = _ref10.editId,
+    onStartEdit = _ref10.onStartEdit,
+    onCancelEdit = _ref10.onCancelEdit,
+    onSaveEdit = _ref10.onSaveEdit,
+    onDel = _ref10.onDel,
+    emptyMsg = _ref10.emptyMsg,
+    btnLabel = _ref10.btnLabel;
+  var _useState5 = useState(false),
+    _useState6 = _slicedToArray(_useState5, 2),
+    showAdd = _useState6[0],
+    setShowAdd = _useState6[1];
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -573,11 +810,11 @@ function InlineList(_ref0) {
 }
 
 // ── FORMS ───────────────────────────────────────────────
-function ClienteMasterForm(_ref1) {
-  var form = _ref1.form,
-    set = _ref1.set,
-    onSave = _ref1.onSave,
-    onCancel = _ref1.onCancel;
+function ClienteMasterForm(_ref11) {
+  var form = _ref11.form,
+    set = _ref11.set,
+    onSave = _ref11.onSave,
+    onCancel = _ref11.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -663,11 +900,11 @@ function ClienteMasterForm(_ref1) {
     onCancel: onCancel
   }));
 }
-function ClienteSelect(_ref10) {
-  var value = _ref10.value,
-    _onChange = _ref10.onChange,
-    clientes = _ref10.clientes,
-    placeholder = _ref10.placeholder;
+function ClienteSelect(_ref12) {
+  var value = _ref12.value,
+    _onChange = _ref12.onChange,
+    clientes = _ref12.clientes,
+    placeholder = _ref12.placeholder;
   return /*#__PURE__*/React.createElement("select", {
     style: cs.inp,
     value: value || "",
@@ -683,10 +920,10 @@ function ClienteSelect(_ref10) {
     }, c.nombre);
   }));
 }
-function ProductoSelect(_ref11) {
-  var value = _ref11.value,
-    _onChange2 = _ref11.onChange,
-    productos = _ref11.productos;
+function ProductoSelect(_ref13) {
+  var value = _ref13.value,
+    _onChange2 = _ref13.onChange,
+    productos = _ref13.productos;
   var opts = [].concat(_toConsumableArray((productos || []).map(function (p) {
     return p.nombre;
   })), _toConsumableArray(PRODUCTOS_HKX.filter(function (p) {
@@ -709,12 +946,12 @@ function ProductoSelect(_ref11) {
     }, p);
   }));
 }
-function ProyectoForm(_ref12) {
-  var form = _ref12.form,
-    set = _ref12.set,
-    onSave = _ref12.onSave,
-    onCancel = _ref12.onCancel,
-    clientes = _ref12.clientes;
+function ProyectoForm(_ref14) {
+  var form = _ref14.form,
+    set = _ref14.set,
+    onSave = _ref14.onSave,
+    onCancel = _ref14.onCancel,
+    clientes = _ref14.clientes;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -775,11 +1012,11 @@ function ProyectoForm(_ref12) {
     onCancel: onCancel
   }));
 }
-function CostoForm(_ref13) {
-  var form = _ref13.form,
-    set = _ref13.set,
-    onSave = _ref13.onSave,
-    onCancel = _ref13.onCancel;
+function CostoForm(_ref15) {
+  var form = _ref15.form,
+    set = _ref15.set,
+    onSave = _ref15.onSave,
+    onCancel = _ref15.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Tipo de recurso"
   }, /*#__PURE__*/React.createElement("select", {
@@ -845,12 +1082,12 @@ function CostoForm(_ref13) {
     onCancel: onCancel
   }));
 }
-function PagoProyForm(_ref14) {
-  var form = _ref14.form,
-    set = _ref14.set,
-    onSave = _ref14.onSave,
-    onCancel = _ref14.onCancel,
-    presupuesto = _ref14.presupuesto;
+function PagoProyForm(_ref16) {
+  var form = _ref16.form,
+    set = _ref16.set,
+    onSave = _ref16.onSave,
+    onCancel = _ref16.onCancel,
+    presupuesto = _ref16.presupuesto;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -951,13 +1188,13 @@ function PagoProyForm(_ref14) {
     onCancel: onCancel
   }));
 }
-function FeeForm(_ref15) {
-  var form = _ref15.form,
-    set = _ref15.set,
-    onSave = _ref15.onSave,
-    onCancel = _ref15.onCancel,
-    clientes = _ref15.clientes,
-    productos = _ref15.productos;
+function FeeForm(_ref17) {
+  var form = _ref17.form,
+    set = _ref17.set,
+    onSave = _ref17.onSave,
+    onCancel = _ref17.onCancel,
+    clientes = _ref17.clientes,
+    productos = _ref17.productos;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -1030,11 +1267,11 @@ function FeeForm(_ref15) {
     onCancel: onCancel
   }));
 }
-function PagoFeeForm(_ref16) {
-  var form = _ref16.form,
-    set = _ref16.set,
-    onSave = _ref16.onSave,
-    onCancel = _ref16.onCancel;
+function PagoFeeForm(_ref18) {
+  var form = _ref18.form,
+    set = _ref18.set,
+    onSave = _ref18.onSave,
+    onCancel = _ref18.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Mes correspondiente"
   }, /*#__PURE__*/React.createElement("input", {
@@ -1107,15 +1344,15 @@ function PagoFeeForm(_ref16) {
 }
 
 // ── FACTURA FORM (actualizado con Origen + método/referencia al pagar) ──
-function FacturaForm(_ref17) {
-  var form = _ref17.form,
-    set = _ref17.set,
-    onSave = _ref17.onSave,
-    onCancel = _ref17.onCancel,
-    clientes = _ref17.clientes,
-    proyectos = _ref17.proyectos,
-    fees = _ref17.fees,
-    productos = _ref17.productos;
+function FacturaForm(_ref19) {
+  var form = _ref19.form,
+    set = _ref19.set,
+    onSave = _ref19.onSave,
+    onCancel = _ref19.onCancel,
+    clientes = _ref19.clientes,
+    proyectos = _ref19.proyectos,
+    fees = _ref19.fees,
+    productos = _ref19.productos;
   var origen = form.origen || "General";
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "No. de factura"
@@ -1282,12 +1519,12 @@ function FacturaForm(_ref17) {
     onCancel: onCancel
   }));
 }
-function GastoCorporativoForm(_ref18) {
-  var form = _ref18.form,
-    set = _ref18.set,
-    onSave = _ref18.onSave,
-    onCancel = _ref18.onCancel;
-  var _useState3 = useState(function () {
+function GastoCorporativoForm(_ref20) {
+  var form = _ref20.form,
+    set = _ref20.set,
+    onSave = _ref20.onSave,
+    onCancel = _ref20.onCancel;
+  var _useState7 = useState(function () {
       try {
         var s = localStorage.getItem("hkx_prods");
         return s ? JSON.parse(s) : INIT_PRODS_CORP;
@@ -1295,13 +1532,13 @@ function GastoCorporativoForm(_ref18) {
         return INIT_PRODS_CORP;
       }
     }),
-    _useState4 = _slicedToArray(_useState3, 2),
-    prods = _useState4[0],
-    setProds = _useState4[1];
-  var _useState5 = useState(""),
-    _useState6 = _slicedToArray(_useState5, 2),
-    nuevo = _useState6[0],
-    setNuevo = _useState6[1];
+    _useState8 = _slicedToArray(_useState7, 2),
+    prods = _useState8[0],
+    setProds = _useState8[1];
+  var _useState9 = useState(""),
+    _useState0 = _slicedToArray(_useState9, 2),
+    nuevo = _useState0[0],
+    setNuevo = _useState0[1];
   function agregar() {
     var p = nuevo.trim();
     if (!p || prods.includes(p)) return;
@@ -1432,11 +1669,11 @@ function GastoCorporativoForm(_ref18) {
     onCancel: onCancel
   }));
 }
-function DistribucionForm(_ref19) {
-  var form = _ref19.form,
-    set = _ref19.set,
-    onSave = _ref19.onSave,
-    onCancel = _ref19.onCancel;
+function DistribucionForm(_ref21) {
+  var form = _ref21.form,
+    set = _ref21.set,
+    onSave = _ref21.onSave,
+    onCancel = _ref21.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Mes correspondiente"
   }, /*#__PURE__*/React.createElement("input", {
@@ -1524,12 +1761,12 @@ function DistribucionForm(_ref19) {
     onCancel: onCancel
   }));
 }
-function RecurrenteBaseForm(_ref20) {
-  var form = _ref20.form,
-    set = _ref20.set,
-    onSave = _ref20.onSave,
-    onCancel = _ref20.onCancel,
-    productos = _ref20.productos;
+function RecurrenteBaseForm(_ref22) {
+  var form = _ref22.form,
+    set = _ref22.set,
+    onSave = _ref22.onSave,
+    onCancel = _ref22.onCancel,
+    productos = _ref22.productos;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Producto HenkanCX"
   }, /*#__PURE__*/React.createElement(ProductoSelect, {
@@ -1604,13 +1841,13 @@ function RecurrenteBaseForm(_ref20) {
     onCancel: onCancel
   }));
 }
-function RecurrenteClienteForm(_ref21) {
-  var form = _ref21.form,
-    set = _ref21.set,
-    onSave = _ref21.onSave,
-    onCancel = _ref21.onCancel,
-    clientes = _ref21.clientes,
-    productos = _ref21.productos;
+function RecurrenteClienteForm(_ref23) {
+  var form = _ref23.form,
+    set = _ref23.set,
+    onSave = _ref23.onSave,
+    onCancel = _ref23.onCancel,
+    clientes = _ref23.clientes,
+    productos = _ref23.productos;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Producto HenkanCX"
   }, /*#__PURE__*/React.createElement(ProductoSelect, {
@@ -1695,11 +1932,11 @@ function RecurrenteClienteForm(_ref21) {
     onCancel: onCancel
   }));
 }
-function PagoRecurrenteForm(_ref22) {
-  var form = _ref22.form,
-    set = _ref22.set,
-    onSave = _ref22.onSave,
-    onCancel = _ref22.onCancel;
+function PagoRecurrenteForm(_ref24) {
+  var form = _ref24.form,
+    set = _ref24.set,
+    onSave = _ref24.onSave,
+    onCancel = _ref24.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Mes"
   }, /*#__PURE__*/React.createElement("input", {
@@ -1760,11 +1997,11 @@ function PagoRecurrenteForm(_ref22) {
     onCancel: onCancel
   }));
 }
-function ProductoForm(_ref23) {
-  var form = _ref23.form,
-    set = _ref23.set,
-    onSave = _ref23.onSave,
-    onCancel = _ref23.onCancel;
+function ProductoForm(_ref25) {
+  var form = _ref25.form,
+    set = _ref25.set,
+    onSave = _ref25.onSave,
+    onCancel = _ref25.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -1808,13 +2045,13 @@ function ProductoForm(_ref23) {
     onCancel: onCancel
   }));
 }
-function BacklogForm(_ref24) {
-  var form = _ref24.form,
-    set = _ref24.set,
-    onSave = _ref24.onSave,
-    onCancel = _ref24.onCancel,
-    clientes = _ref24.clientes,
-    facturas = _ref24.facturas;
+function BacklogForm(_ref26) {
+  var form = _ref26.form,
+    set = _ref26.set,
+    onSave = _ref26.onSave,
+    onCancel = _ref26.onCancel,
+    clientes = _ref26.clientes,
+    facturas = _ref26.facturas;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Tipo"
   }, /*#__PURE__*/React.createElement("select", {
@@ -1912,28 +2149,28 @@ function BacklogForm(_ref24) {
 }
 
 // ── SUB-SECTIONS ─────────────────────────────────────────
-function SubPresupuesto(_ref25) {
-  var items = _ref25.items,
-    onAdd = _ref25.onAdd,
-    onDel = _ref25.onDel,
-    onEdit = _ref25.onEdit;
-  var _useState7 = useState({
+function SubPresupuesto(_ref27) {
+  var items = _ref27.items,
+    onAdd = _ref27.onAdd,
+    onDel = _ref27.onDel,
+    onEdit = _ref27.onEdit;
+  var _useState1 = useState({
       id: uid(),
       tipoRecurso: "Interno",
       meses: 1,
       rol: ""
     }),
-    _useState8 = _slicedToArray(_useState7, 2),
-    nf = _useState8[0],
-    setNf = _useState8[1];
-  var _useState9 = useState(null),
-    _useState0 = _slicedToArray(_useState9, 2),
-    editId = _useState0[0],
-    setEditId = _useState0[1];
-  var _useState1 = useState({}),
     _useState10 = _slicedToArray(_useState1, 2),
-    ef = _useState10[0],
-    setEf = _useState10[1];
+    nf = _useState10[0],
+    setNf = _useState10[1];
+  var _useState11 = useState(null),
+    _useState12 = _slicedToArray(_useState11, 2),
+    editId = _useState12[0],
+    setEditId = _useState12[1];
+  var _useState13 = useState({}),
+    _useState14 = _slicedToArray(_useState13, 2),
+    ef = _useState14[0],
+    setEf = _useState14[1];
   var total = items.reduce(function (s, x) {
     return s + calcCosto(x);
   }, 0);
@@ -2041,28 +2278,28 @@ function SubPresupuesto(_ref25) {
     }
   }));
 }
-function SubPagos(_ref26) {
-  var items = _ref26.items,
-    onAdd = _ref26.onAdd,
-    onDel = _ref26.onDel,
-    onEdit = _ref26.onEdit,
-    presupuesto = _ref26.presupuesto;
-  var _useState11 = useState({
+function SubPagos(_ref28) {
+  var items = _ref28.items,
+    onAdd = _ref28.onAdd,
+    onDel = _ref28.onDel,
+    onEdit = _ref28.onEdit,
+    presupuesto = _ref28.presupuesto;
+  var _useState15 = useState({
       id: uid(),
       estado: "Pagado",
       metodo: "ACH"
     }),
-    _useState12 = _slicedToArray(_useState11, 2),
-    nf = _useState12[0],
-    setNf = _useState12[1];
-  var _useState13 = useState(null),
-    _useState14 = _slicedToArray(_useState13, 2),
-    editId = _useState14[0],
-    setEditId = _useState14[1];
-  var _useState15 = useState({}),
     _useState16 = _slicedToArray(_useState15, 2),
-    ef = _useState16[0],
-    setEf = _useState16[1];
+    nf = _useState16[0],
+    setNf = _useState16[1];
+  var _useState17 = useState(null),
+    _useState18 = _slicedToArray(_useState17, 2),
+    editId = _useState18[0],
+    setEditId = _useState18[1];
+  var _useState19 = useState({}),
+    _useState20 = _slicedToArray(_useState19, 2),
+    ef = _useState20[0],
+    setEf = _useState20[1];
   var totalPagado = items.filter(function (g) {
     return g.estado === "Pagado";
   }).reduce(function (s, g) {
@@ -2251,21 +2488,21 @@ function SubPagos(_ref26) {
 }
 
 // ── MOD CLIENTES MASTER ──────────────────────────────────
-function ModClientesMaster(_ref27) {
-  var data = _ref27.data,
-    setData = _ref27.setData;
-  var _useState17 = useState(false),
-    _useState18 = _slicedToArray(_useState17, 2),
-    modal = _useState18[0],
-    setModal = _useState18[1];
-  var _useState19 = useState(null),
-    _useState20 = _slicedToArray(_useState19, 2),
-    selId = _useState20[0],
-    setSelId = _useState20[1];
-  var _useState21 = useState({}),
+function ModClientesMaster(_ref29) {
+  var data = _ref29.data,
+    setData = _ref29.setData;
+  var _useState21 = useState(false),
     _useState22 = _slicedToArray(_useState21, 2),
-    form = _useState22[0],
-    setForm = _useState22[1];
+    modal = _useState22[0],
+    setModal = _useState22[1];
+  var _useState23 = useState(null),
+    _useState24 = _slicedToArray(_useState23, 2),
+    selId = _useState24[0],
+    setSelId = _useState24[1];
+  var _useState25 = useState({}),
+    _useState26 = _slicedToArray(_useState25, 2),
+    form = _useState26[0],
+    setForm = _useState26[1];
   var fset = function fset(k, v) {
     return setForm(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -2363,10 +2600,10 @@ function ModClientesMaster(_ref27) {
         width: "100%",
         borderCollapse: "collapse"
       }
-    }, /*#__PURE__*/React.createElement("tbody", null, [["RUC / Cédula", sel.ruc || "—"], ["Sector", sel.sector || "—"], ["País", sel.pais || "—"], ["Contacto", sel.contacto || "—"], ["Email", sel.email || "—"], ["Teléfono", sel.telefono || "—"], ["Estado", sel.estado || "Activo"]].map(function (_ref28) {
-      var _ref29 = _slicedToArray(_ref28, 2),
-        l = _ref29[0],
-        v = _ref29[1];
+    }, /*#__PURE__*/React.createElement("tbody", null, [["RUC / Cédula", sel.ruc || "—"], ["Sector", sel.sector || "—"], ["País", sel.pais || "—"], ["Contacto", sel.contacto || "—"], ["Email", sel.email || "—"], ["Teléfono", sel.telefono || "—"], ["Estado", sel.estado || "Activo"]].map(function (_ref30) {
+      var _ref31 = _slicedToArray(_ref30, 2),
+        l = _ref31[0],
+        v = _ref31[1];
       return /*#__PURE__*/React.createElement("tr", {
         key: l,
         style: {
@@ -2645,25 +2882,25 @@ function calcP(p) {
     rent: rent
   };
 }
-function ModProyectos(_ref30) {
-  var data = _ref30.data,
-    setData = _ref30.setData;
-  var _useState23 = useState(false),
-    _useState24 = _slicedToArray(_useState23, 2),
-    modal = _useState24[0],
-    setModal = _useState24[1];
-  var _useState25 = useState(null),
-    _useState26 = _slicedToArray(_useState25, 2),
-    selId = _useState26[0],
-    setSelId = _useState26[1];
-  var _useState27 = useState("resumen"),
+function ModProyectos(_ref32) {
+  var data = _ref32.data,
+    setData = _ref32.setData;
+  var _useState27 = useState(false),
     _useState28 = _slicedToArray(_useState27, 2),
-    subTab = _useState28[0],
-    setSubTab = _useState28[1];
-  var _useState29 = useState({}),
+    modal = _useState28[0],
+    setModal = _useState28[1];
+  var _useState29 = useState(null),
     _useState30 = _slicedToArray(_useState29, 2),
-    pf = _useState30[0],
-    setPf = _useState30[1];
+    selId = _useState30[0],
+    setSelId = _useState30[1];
+  var _useState31 = useState("resumen"),
+    _useState32 = _slicedToArray(_useState31, 2),
+    subTab = _useState32[0],
+    setSubTab = _useState32[1];
+  var _useState33 = useState({}),
+    _useState34 = _slicedToArray(_useState33, 2),
+    pf = _useState34[0],
+    setPf = _useState34[1];
   var pset = function pset(k, v) {
     return setPf(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -2822,10 +3059,10 @@ function ModProyectos(_ref30) {
         width: "100%",
         borderCollapse: "collapse"
       }
-    }, /*#__PURE__*/React.createElement("tbody", null, [["Cliente", clienteNombre], ["Inicio", sel.fechaInicio || "—"], ["Fin est.", sel.fechaFin || "—"], ["Contrato", fmt(cc.contrato)], ["Presupuesto total", fmt(cc.costos)], ["Total pagado (costos)", fmt(cc.pagos)], ["Diferencia", fmt(cc.costos - cc.pagos)], ["Ganancia estimada", fmt(cc.contrato - cc.costos)], ["Rentabilidad", fmtPct(cc.rent)], ["Cobrado (facturas)", fmt(cobrado)], ["Por cobrar (facturas)", fmt(porCobrar)]].map(function (_ref31) {
-      var _ref32 = _slicedToArray(_ref31, 2),
-        l = _ref32[0],
-        v = _ref32[1];
+    }, /*#__PURE__*/React.createElement("tbody", null, [["Cliente", clienteNombre], ["Inicio", sel.fechaInicio || "—"], ["Fin est.", sel.fechaFin || "—"], ["Contrato", fmt(cc.contrato)], ["Presupuesto total", fmt(cc.costos)], ["Total pagado (costos)", fmt(cc.pagos)], ["Diferencia", fmt(cc.costos - cc.pagos)], ["Ganancia estimada", fmt(cc.contrato - cc.costos)], ["Rentabilidad", fmtPct(cc.rent)], ["Cobrado (facturas)", fmt(cobrado)], ["Por cobrar (facturas)", fmt(porCobrar)]].map(function (_ref33) {
+      var _ref34 = _slicedToArray(_ref33, 2),
+        l = _ref34[0],
+        v = _ref34[1];
       return /*#__PURE__*/React.createElement("tr", {
         key: l,
         style: {
@@ -3039,11 +3276,11 @@ function ModProyectos(_ref30) {
         marginTop: 10,
         flexWrap: "wrap"
       }
-    }, [["Contrato", fmt(cc.contrato), NAVY], ["Cobrado", fmt(cobrado), GREEN], ["Por cobrar", fmt(porCobrar), AMBER], ["Presupuesto", fmt(cc.costos), RED]].map(function (_ref33) {
-      var _ref34 = _slicedToArray(_ref33, 3),
-        l = _ref34[0],
-        v = _ref34[1],
-        col = _ref34[2];
+    }, [["Contrato", fmt(cc.contrato), NAVY], ["Cobrado", fmt(cobrado), GREEN], ["Por cobrar", fmt(porCobrar), AMBER], ["Presupuesto", fmt(cc.costos), RED]].map(function (_ref35) {
+      var _ref36 = _slicedToArray(_ref35, 3),
+        l = _ref36[0],
+        v = _ref36[1],
+        col = _ref36[2];
       return /*#__PURE__*/React.createElement("div", {
         key: l,
         style: {
@@ -3073,44 +3310,44 @@ function ModProyectos(_ref30) {
 }
 
 // ── MOD PRODUCTOS ────────────────────────────────────────
-function ProductoDetalle(_ref35) {
-  var prod = _ref35.prod,
-    data = _ref35.data,
-    setData = _ref35.setData,
-    onBack = _ref35.onBack;
-  var _useState31 = useState("backlog"),
-    _useState32 = _slicedToArray(_useState31, 2),
-    tab = _useState32[0],
-    setTab = _useState32[1];
-  var _useState33 = useState(null),
-    _useState34 = _slicedToArray(_useState33, 2),
-    modal = _useState34[0],
-    setModal = _useState34[1];
-  var _useState35 = useState({}),
+function ProductoDetalle(_ref37) {
+  var prod = _ref37.prod,
+    data = _ref37.data,
+    setData = _ref37.setData,
+    onBack = _ref37.onBack;
+  var _useState35 = useState("backlog"),
     _useState36 = _slicedToArray(_useState35, 2),
-    pf = _useState36[0],
-    setPf = _useState36[1];
+    tab = _useState36[0],
+    setTab = _useState36[1];
+  var _useState37 = useState(null),
+    _useState38 = _slicedToArray(_useState37, 2),
+    modal = _useState38[0],
+    setModal = _useState38[1];
+  var _useState39 = useState({}),
+    _useState40 = _slicedToArray(_useState39, 2),
+    pf = _useState40[0],
+    setPf = _useState40[1];
   var pset = function pset(k, v) {
     return setPf(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
     });
   };
-  var _useState37 = useState({
+  var _useState41 = useState({
       id: uid(),
       tipo: "Nueva funcionalidad",
       estado: "Solicitado"
     }),
-    _useState38 = _slicedToArray(_useState37, 2),
-    nf = _useState38[0],
-    setNf = _useState38[1];
-  var _useState39 = useState(null),
-    _useState40 = _slicedToArray(_useState39, 2),
-    editId = _useState40[0],
-    setEditId = _useState40[1];
-  var _useState41 = useState({}),
     _useState42 = _slicedToArray(_useState41, 2),
-    ef = _useState42[0],
-    setEf = _useState42[1];
+    nf = _useState42[0],
+    setNf = _useState42[1];
+  var _useState43 = useState(null),
+    _useState44 = _slicedToArray(_useState43, 2),
+    editId = _useState44[0],
+    setEditId = _useState44[1];
+  var _useState45 = useState({}),
+    _useState46 = _slicedToArray(_useState45, 2),
+    ef = _useState46[0],
+    setEf = _useState46[1];
   var clientes = data.clientes || [];
   var facturas = data.facturas || [];
   var freshProd = (data.productos || []).find(function (p) {
@@ -3654,21 +3891,21 @@ function ProductoDetalle(_ref35) {
     productos: data.productos || []
   })));
 }
-function ModProductos(_ref36) {
-  var data = _ref36.data,
-    setData = _ref36.setData;
-  var _useState43 = useState(false),
-    _useState44 = _slicedToArray(_useState43, 2),
-    modal = _useState44[0],
-    setModal = _useState44[1];
-  var _useState45 = useState(null),
-    _useState46 = _slicedToArray(_useState45, 2),
-    selId = _useState46[0],
-    setSelId = _useState46[1];
-  var _useState47 = useState({}),
+function ModProductos(_ref38) {
+  var data = _ref38.data,
+    setData = _ref38.setData;
+  var _useState47 = useState(false),
     _useState48 = _slicedToArray(_useState47, 2),
-    form = _useState48[0],
-    setForm = _useState48[1];
+    modal = _useState48[0],
+    setModal = _useState48[1];
+  var _useState49 = useState(null),
+    _useState50 = _slicedToArray(_useState49, 2),
+    selId = _useState50[0],
+    setSelId = _useState50[1];
+  var _useState51 = useState({}),
+    _useState52 = _slicedToArray(_useState51, 2),
+    form = _useState52[0],
+    setForm = _useState52[1];
   var fset = function fset(k, v) {
     return setForm(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -3825,11 +4062,11 @@ function ModProductos(_ref36) {
       return x.estado === "Solicitado";
     }).length, AMBER], ["Ejecutados", backlog.filter(function (x) {
       return x.estado === "Ejecutado";
-    }).length, GREEN], ["Clientes activos", clientesActivos, PURPLE], ["Recurrentes/mes", fmt(recTotal), RED]].map(function (_ref37) {
-      var _ref38 = _slicedToArray(_ref37, 3),
-        l = _ref38[0],
-        v = _ref38[1],
-        col = _ref38[2];
+    }).length, GREEN], ["Clientes activos", clientesActivos, PURPLE], ["Recurrentes/mes", fmt(recTotal), RED]].map(function (_ref39) {
+      var _ref40 = _slicedToArray(_ref39, 3),
+        l = _ref40[0],
+        v = _ref40[1],
+        col = _ref40[2];
       return /*#__PURE__*/React.createElement("div", {
         key: l,
         style: {
@@ -3858,30 +4095,30 @@ function ModProductos(_ref36) {
 }
 
 // ── MOD FEES ─────────────────────────────────────────────
-function FeeDetalle(_ref39) {
-  var fee = _ref39.fee,
-    data = _ref39.data,
-    setData = _ref39.setData,
-    onBack = _ref39.onBack,
-    clientes = _ref39.clientes,
-    productos = _ref39.productos;
-  var _useState49 = useState({
+function FeeDetalle(_ref41) {
+  var fee = _ref41.fee,
+    data = _ref41.data,
+    setData = _ref41.setData,
+    onBack = _ref41.onBack,
+    clientes = _ref41.clientes,
+    productos = _ref41.productos;
+  var _useState53 = useState({
       id: uid(),
       estado: "Pendiente",
       metodo: "ACH",
       monto: fee.fee || 0
     }),
-    _useState50 = _slicedToArray(_useState49, 2),
-    nf = _useState50[0],
-    setNf = _useState50[1];
-  var _useState51 = useState(null),
-    _useState52 = _slicedToArray(_useState51, 2),
-    editId = _useState52[0],
-    setEditId = _useState52[1];
-  var _useState53 = useState({}),
     _useState54 = _slicedToArray(_useState53, 2),
-    ef = _useState54[0],
-    setEf = _useState54[1];
+    nf = _useState54[0],
+    setNf = _useState54[1];
+  var _useState55 = useState(null),
+    _useState56 = _slicedToArray(_useState55, 2),
+    editId = _useState56[0],
+    setEditId = _useState56[1];
+  var _useState57 = useState({}),
+    _useState58 = _slicedToArray(_useState57, 2),
+    ef = _useState58[0],
+    setEf = _useState58[1];
   var cliente = clientes.find(function (c) {
     return c.id === fee.clienteId;
   });
@@ -4077,21 +4314,21 @@ function FeeDetalle(_ref39) {
     }
   }));
 }
-function ModFees(_ref40) {
-  var data = _ref40.data,
-    setData = _ref40.setData;
-  var _useState55 = useState(false),
-    _useState56 = _slicedToArray(_useState55, 2),
-    modal = _useState56[0],
-    setModal = _useState56[1];
-  var _useState57 = useState(null),
-    _useState58 = _slicedToArray(_useState57, 2),
-    selId = _useState58[0],
-    setSelId = _useState58[1];
-  var _useState59 = useState({}),
+function ModFees(_ref42) {
+  var data = _ref42.data,
+    setData = _ref42.setData;
+  var _useState59 = useState(false),
     _useState60 = _slicedToArray(_useState59, 2),
-    form = _useState60[0],
-    setForm = _useState60[1];
+    modal = _useState60[0],
+    setModal = _useState60[1];
+  var _useState61 = useState(null),
+    _useState62 = _slicedToArray(_useState61, 2),
+    selId = _useState62[0],
+    setSelId = _useState62[1];
+  var _useState63 = useState({}),
+    _useState64 = _slicedToArray(_useState63, 2),
+    form = _useState64[0],
+    setForm = _useState64[1];
   var fset = function fset(k, v) {
     return setForm(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -4254,17 +4491,17 @@ function ModFees(_ref40) {
 }
 
 // ── MOD FACTURAS (actualizado) ────────────────────────────
-function ModFacturas(_ref41) {
-  var data = _ref41.data,
-    setData = _ref41.setData;
-  var _useState61 = useState(false),
-    _useState62 = _slicedToArray(_useState61, 2),
-    modal = _useState62[0],
-    setModal = _useState62[1];
-  var _useState63 = useState({}),
-    _useState64 = _slicedToArray(_useState63, 2),
-    ff = _useState64[0],
-    setFf = _useState64[1];
+function ModFacturas(_ref43) {
+  var data = _ref43.data,
+    setData = _ref43.setData;
+  var _useState65 = useState(false),
+    _useState66 = _slicedToArray(_useState65, 2),
+    modal = _useState66[0],
+    setModal = _useState66[1];
+  var _useState67 = useState({}),
+    _useState68 = _slicedToArray(_useState67, 2),
+    ff = _useState68[0],
+    setFf = _useState68[1];
   var fset = function fset(k, v) {
     return setFf(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -4499,30 +4736,30 @@ function ModFacturas(_ref41) {
 }
 
 // ── MOD RECURRENTES ───────────────────────────────────────
-function RecurrenteDetalle(_ref42) {
+function RecurrenteDetalle(_ref44) {
   var _find2;
-  var item = _ref42.item,
-    onBack = _ref42.onBack,
-    onUpdatePagos = _ref42.onUpdatePagos,
-    clientes = _ref42.clientes,
-    data = _ref42.data;
-  var _useState65 = useState({
+  var item = _ref44.item,
+    onBack = _ref44.onBack,
+    onUpdatePagos = _ref44.onUpdatePagos,
+    clientes = _ref44.clientes,
+    data = _ref44.data;
+  var _useState69 = useState({
       id: uid(),
       estado: "Pagado",
       metodo: "ACH",
       monto: item.monto || 0
     }),
-    _useState66 = _slicedToArray(_useState65, 2),
-    nf = _useState66[0],
-    setNf = _useState66[1];
-  var _useState67 = useState(null),
-    _useState68 = _slicedToArray(_useState67, 2),
-    editId = _useState68[0],
-    setEditId = _useState68[1];
-  var _useState69 = useState({}),
     _useState70 = _slicedToArray(_useState69, 2),
-    ef = _useState70[0],
-    setEf = _useState70[1];
+    nf = _useState70[0],
+    setNf = _useState70[1];
+  var _useState71 = useState(null),
+    _useState72 = _slicedToArray(_useState71, 2),
+    editId = _useState72[0],
+    setEditId = _useState72[1];
+  var _useState73 = useState({}),
+    _useState74 = _slicedToArray(_useState73, 2),
+    ef = _useState74[0],
+    setEf = _useState74[1];
   var freshItem = (item.clienteId ? ((data.recurrentes || {}).porCliente || []).find(function (x) {
     return x.id === item.id;
   }) : ((data.recurrentes || {}).base || []).find(function (x) {
@@ -4675,33 +4912,33 @@ function RecurrenteDetalle(_ref42) {
     }
   }));
 }
-function ModRecurrentes(_ref43) {
-  var data = _ref43.data,
-    setData = _ref43.setData;
-  var _useState71 = useState("base"),
-    _useState72 = _slicedToArray(_useState71, 2),
-    tab = _useState72[0],
-    setTab = _useState72[1];
-  var _useState73 = useState("base"),
-    _useState74 = _slicedToArray(_useState73, 2),
-    mTab = _useState74[0],
-    setMTab = _useState74[1];
-  var _useState75 = useState(null),
+function ModRecurrentes(_ref45) {
+  var data = _ref45.data,
+    setData = _ref45.setData;
+  var _useState75 = useState("base"),
     _useState76 = _slicedToArray(_useState75, 2),
-    selItem = _useState76[0],
-    setSelItem = _useState76[1];
-  var _useState77 = useState(null),
+    tab = _useState76[0],
+    setTab = _useState76[1];
+  var _useState77 = useState("base"),
     _useState78 = _slicedToArray(_useState77, 2),
-    selType = _useState78[0],
-    setSelType = _useState78[1];
-  var _useState79 = useState(false),
+    mTab = _useState78[0],
+    setMTab = _useState78[1];
+  var _useState79 = useState(null),
     _useState80 = _slicedToArray(_useState79, 2),
-    modal = _useState80[0],
-    setModal = _useState80[1];
-  var _useState81 = useState({}),
+    selItem = _useState80[0],
+    setSelItem = _useState80[1];
+  var _useState81 = useState(null),
     _useState82 = _slicedToArray(_useState81, 2),
-    form = _useState82[0],
-    setForm = _useState82[1];
+    selType = _useState82[0],
+    setSelType = _useState82[1];
+  var _useState83 = useState(false),
+    _useState84 = _slicedToArray(_useState83, 2),
+    modal = _useState84[0],
+    setModal = _useState84[1];
+  var _useState85 = useState({}),
+    _useState86 = _slicedToArray(_useState85, 2),
+    form = _useState86[0],
+    setForm = _useState86[1];
   var fset = function fset(k, v) {
     return setForm(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -4829,10 +5066,10 @@ function ModRecurrentes(_ref43) {
   }).reduce(function (s, x) {
     return s + montoMensual(x);
   }, 0);
-  function ItemCard(_ref44) {
-    var x = _ref44.x,
-      onDel = _ref44.onDel,
-      extra = _ref44.extra;
+  function ItemCard(_ref46) {
+    var x = _ref46.x,
+      onDel = _ref46.onDel,
+      extra = _ref46.extra;
     return /*#__PURE__*/React.createElement("div", {
       style: _objectSpread(_objectSpread({}, cs.card), {}, {
         cursor: "pointer",
@@ -5018,10 +5255,10 @@ function ModRecurrentes(_ref43) {
       gap: 6,
       marginBottom: 12
     }
-  }, [["base", "Por Producto"], ["cliente", "Por Cliente"]].map(function (_ref45) {
-    var _ref46 = _slicedToArray(_ref45, 2),
-      v = _ref46[0],
-      l = _ref46[1];
+  }, [["base", "Por Producto"], ["cliente", "Por Cliente"]].map(function (_ref47) {
+    var _ref48 = _slicedToArray(_ref47, 2),
+      v = _ref48[0],
+      l = _ref48[1];
     return /*#__PURE__*/React.createElement("button", {
       key: v,
       onClick: function onClick() {
@@ -5058,17 +5295,17 @@ function ModRecurrentes(_ref43) {
 }
 
 // ── MOD GASTOS ────────────────────────────────────────────
-function ModGastos(_ref47) {
-  var data = _ref47.data,
-    setData = _ref47.setData;
-  var _useState83 = useState(false),
-    _useState84 = _slicedToArray(_useState83, 2),
-    modal = _useState84[0],
-    setModal = _useState84[1];
-  var _useState85 = useState({}),
-    _useState86 = _slicedToArray(_useState85, 2),
-    gf = _useState86[0],
-    setGf = _useState86[1];
+function ModGastos(_ref49) {
+  var data = _ref49.data,
+    setData = _ref49.setData;
+  var _useState87 = useState(false),
+    _useState88 = _slicedToArray(_useState87, 2),
+    modal = _useState88[0],
+    setModal = _useState88[1];
+  var _useState89 = useState({}),
+    _useState90 = _slicedToArray(_useState89, 2),
+    gf = _useState90[0],
+    setGf = _useState90[1];
   var gset = function gset(k, v) {
     return setGf(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -5233,8 +5470,8 @@ function ModGastos(_ref47) {
 }
 
 // ── MOD COBRAR (rediseñado: solo facturas) ────────────────
-function ModCobrar(_ref48) {
-  var data = _ref48.data;
+function ModCobrar(_ref50) {
+  var data = _ref50.data;
   var clientes = data.clientes || [];
   var proyectos = data.proyectos || [];
   var fees = data.fees || [];
@@ -5475,31 +5712,31 @@ function ModCobrar(_ref48) {
 }
 
 // ── MOD SOCIOS ────────────────────────────────────────────
-function ModSocios(_ref49) {
-  var data = _ref49.data,
-    setData = _ref49.setData;
-  var _useState87 = useState(false),
-    _useState88 = _slicedToArray(_useState87, 2),
-    modal = _useState88[0],
-    setModal = _useState88[1];
-  var _useState89 = useState({
+function ModSocios(_ref51) {
+  var data = _ref51.data,
+    setData = _ref51.setData;
+  var _useState91 = useState(false),
+    _useState92 = _slicedToArray(_useState91, 2),
+    modal = _useState92[0],
+    setModal = _useState92[1];
+  var _useState93 = useState({
       id: uid(),
       socio: "andrea",
       tipo: "dividendos",
       estado: "Pendiente",
       metodo: "ACH"
     }),
-    _useState90 = _slicedToArray(_useState89, 2),
-    df = _useState90[0],
-    setDf = _useState90[1];
-  var _useState91 = useState(null),
-    _useState92 = _slicedToArray(_useState91, 2),
-    editId = _useState92[0],
-    setEditId = _useState92[1];
-  var _useState93 = useState({}),
     _useState94 = _slicedToArray(_useState93, 2),
-    ef = _useState94[0],
-    setEf = _useState94[1];
+    df = _useState94[0],
+    setDf = _useState94[1];
+  var _useState95 = useState(null),
+    _useState96 = _slicedToArray(_useState95, 2),
+    editId = _useState96[0],
+    setEditId = _useState96[1];
+  var _useState97 = useState({}),
+    _useState98 = _slicedToArray(_useState97, 2),
+    ef = _useState98[0],
+    setEf = _useState98[1];
   var dset = function dset(k, v) {
     return setDf(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -5740,8 +5977,8 @@ function ModSocios(_ref49) {
 }
 
 // ── MOD DASHBOARD ─────────────────────────────────────────
-function ModDashboard(_ref50) {
-  var data = _ref50.data;
+function ModDashboard(_ref52) {
+  var data = _ref52.data;
   var mrr = (data.fees || []).filter(function (x) {
     return x.estado === "Activo";
   }).reduce(function (s, x) {
@@ -5969,11 +6206,11 @@ function ModDashboard(_ref50) {
       fontFamily: "Poppins,sans-serif",
       marginBottom: 8
     }
-  }, "Distribuci\xF3n mensual (sobre MRR)"), [["Capital Operativo", DIST.operativo, NAVY], ["Repago inversión", DIST.repago, PURPLE], ["Dividendos (socios)", DIST.dividendos, MAGENTA]].map(function (_ref51) {
-    var _ref52 = _slicedToArray(_ref51, 3),
-      l = _ref52[0],
-      p = _ref52[1],
-      col = _ref52[2];
+  }, "Distribuci\xF3n mensual (sobre MRR)"), [["Capital Operativo", DIST.operativo, NAVY], ["Repago inversión", DIST.repago, PURPLE], ["Dividendos (socios)", DIST.dividendos, MAGENTA]].map(function (_ref53) {
+    var _ref54 = _slicedToArray(_ref53, 3),
+      l = _ref54[0],
+      p = _ref54[1],
+      col = _ref54[2];
     return /*#__PURE__*/React.createElement("div", {
       key: l,
       style: {
@@ -6028,7 +6265,7 @@ function ModDashboard(_ref50) {
 
 // ── APP ───────────────────────────────────────────────────
 function App() {
-  var _useState95 = useState(function () {
+  var _useState99 = useState(function () {
       try {
         var s = localStorage.getItem(SK);
         return migrate(s ? JSON.parse(s) : null);
@@ -6036,13 +6273,13 @@ function App() {
         return emptyData();
       }
     }),
-    _useState96 = _slicedToArray(_useState95, 2),
-    data = _useState96[0],
-    setData = _useState96[1];
-  var _useState97 = useState("dashboard"),
-    _useState98 = _slicedToArray(_useState97, 2),
-    mod = _useState98[0],
-    setMod = _useState98[1];
+    _useState100 = _slicedToArray(_useState99, 2),
+    data = _useState100[0],
+    setData = _useState100[1];
+  var _useState101 = useState("dashboard"),
+    _useState102 = _slicedToArray(_useState101, 2),
+    mod = _useState102[0],
+    setMod = _useState102[1];
   useEffect(function () {
     try {
       localStorage.setItem(SK, JSON.stringify(data));
@@ -6147,7 +6384,15 @@ function App() {
       overflowY: "auto",
       padding: "1.5rem"
     }
-  }, mod === "dashboard" && /*#__PURE__*/React.createElement(ModDashboard, {
+  }, /*#__PURE__*/React.createElement(SyncPanel, {
+    data: data,
+    onImport: function onImport(d) {
+      setData(d);
+      try {
+        localStorage.setItem(SK, JSON.stringify(d));
+      } catch (_unused5) {}
+    }
+  }), mod === "dashboard" && /*#__PURE__*/React.createElement(ModDashboard, {
     data: data
   }), mod === "clientes_master" && /*#__PURE__*/React.createElement(ModClientesMaster, {
     data: data,
@@ -6177,9 +6422,7 @@ function App() {
     setData: setData
   })));
 }
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));
+ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 
 },{}]},{},[1]);
-</script>
-</body>
-</html>
+</script></body></html>
