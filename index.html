@@ -75,21 +75,14 @@ function sheetsSave(_x) {
 } // ── TOAST ─────────────────────────────────────────────────
 function _sheetsSave() {
   _sheetsSave = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(data) {
-    var res, json;
+    var encoded, url, res, json;
     return _regenerator().w(function (_context4) {
       while (1) switch (_context4.n) {
         case 0:
+          encoded = encodeURIComponent(JSON.stringify(data));
+          url = SHEETS_URL + "?action=save&data=" + encoded;
           _context4.n = 1;
-          return fetch(SHEETS_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              action: "save",
-              data: data
-            })
-          });
+          return fetch(url);
         case 1:
           res = _context4.v;
           _context4.n = 2;
