@@ -40,7 +40,7 @@ var _React = React,
   useEffect = _React.useEffect;
 
 // ── SHEETS CONFIG ─────────────────────────────────────────
-var SHEETS_URL = "https://script.google.com/macros/s/AKfycbwRmFlplzueIKzkGTl3uPC4z-9QAe20ydbUjmWA4aj5YZaLguuxxlX8xfB5R-BTBD1b5w/exec";
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbyfvhCrHh7IEwt58Q2fluMjVxrJ8Fx2mQxLfS77sjiXSTxcT5fF3GR67v-sus35cCqQXg/exec";
 function sheetsLoad() {
   return _sheetsLoad.apply(this, arguments);
 }
@@ -75,14 +75,21 @@ function sheetsSave(_x) {
 } // ── TOAST ─────────────────────────────────────────────────
 function _sheetsSave() {
   _sheetsSave = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(data) {
-    var encoded, url, res, json;
+    var res, json;
     return _regenerator().w(function (_context4) {
       while (1) switch (_context4.n) {
         case 0:
-          encoded = encodeURIComponent(JSON.stringify(data));
-          url = SHEETS_URL + "?action=save&data=" + encoded;
           _context4.n = 1;
-          return fetch(url);
+          return fetch(SHEETS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              action: "save",
+              data: data
+            })
+          });
         case 1:
           res = _context4.v;
           _context4.n = 2;
@@ -2546,8 +2553,12 @@ function ModClientesMaster(_ref29) {
         marginBottom: "1rem"
       }
     }, /*#__PURE__*/React.createElement("button", {
-      onClick: function onClick() {
-        return setSelId(null);
+      onClick: function onClick(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        setModal(false);
+        setForm({});
+        setSelId(null);
       },
       style: cs.btnS
     }, "\u2190 Clientes"), /*#__PURE__*/React.createElement("h2", {
