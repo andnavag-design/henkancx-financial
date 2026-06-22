@@ -3609,7 +3609,9 @@ function ModProductos(_ref38) {
     })), _toConsumableArray(((data.recurrentes || {}).porCliente || []).filter(function (x) {
       var _x$producto4, _p$nombre3;
       return ((_x$producto4 = x.producto) === null || _x$producto4 === void 0 ? void 0 : _x$producto4.toLowerCase()) === ((_p$nombre3 = p.nombre) === null || _p$nombre3 === void 0 ? void 0 : _p$nombre3.toLowerCase());
-    }))).reduce(function (s, x) {
+    }))).filter(function (x) {
+      return x.frecuencia !== "Pago \u00FAnico";
+    }).reduce(function (s, x) {
       return s + montoMensual(x);
     }, 0);
     return /*#__PURE__*/React.createElement("div", {
