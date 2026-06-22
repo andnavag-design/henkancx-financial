@@ -3944,6 +3944,26 @@ function ModFacturas(_ref43) {
   var proyectos = data.proyectos || [];
   var fees = data.fees || [];
   var productos = data.productos || [];
+
+  // Migración automática: facturas sin clienteId se vinculan por nombre (case-insensitive)
+  useEffect(function() {
+    var necesitaMigrar = facturas.some(function(f) {
+      return !f.clienteId && f.cliente;
+    });
+    if (!necesitaMigrar) return;
+    var migradas = facturas.map(function(f) {
+      if (f.clienteId || !f.cliente) return f;
+      var match = clientes.find(function(c) {
+        return c.nombre.trim().toLowerCase() === f.cliente.trim().toLowerCase();
+      });
+      return match ? _objectSpread(_objectSpread({}, f), {}, { clienteId: match.id, cliente: match.nombre }) : f;
+    });
+    var cambio = migradas.some(function(f, i) { return f.clienteId !== facturas[i].clienteId; });
+    if (cambio) {
+      setData(function(d) { return _objectSpread(_objectSpread({}, d), {}, { facturas: migradas }); });
+    }
+  }, []);
+
   function saveF() {
     // Auto-generar número si está vacío
     var entry = _objectSpread({}, ff);
