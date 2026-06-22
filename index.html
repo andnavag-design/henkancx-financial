@@ -82,26 +82,12 @@ function _sheetsSave() {
           _context4.n = 1;
           return fetch(SHEETS_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              action: "save",
-              data: data
-            })
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "save", data: data })
           });
         case 1:
-          res = _context4.v;
-          _context4.n = 2;
-          return res.json();
-        case 2:
-          json = _context4.v;
-          if (json.ok) {
-            _context4.n = 3;
-            break;
-          }
-          throw new Error(json.error || "Error guardando");
-        case 3:
+          // no-cors returns opaque response - assume success if no network error
           return _context4.a(2, true);
       }
     }, _callee4);
