@@ -3097,10 +3097,11 @@ function InversionForm(_ref_inv) {
     onSave = _ref_inv.onSave,
     onCancel = _ref_inv.onCancel;
   var CATS = ["Desarrollo", "Dise\xF1o", "Infraestructura", "Marketing", "Legal", "Otro"];
-  var ESTADOS_INV = ["Pendiente de recuperar", "Recuperado"];
+  var ESTADOS_INV = ["Presupuestado", "Pagado", "Recuperado"];
+  var METODOS_PAGO = ["ACH", "Transferencia", "Efectivo", "Cheque", "Tarjeta", "Otro"];
   return React.createElement("div", null,
     React.createElement(Row, { cols: "1fr" }, React.createElement(Fld, { label: "Concepto" },
-      React.createElement("input", { style: cs.inp, value: form.concepto || "", onChange: function(e) { return set("concepto", e.target.value); } })
+      React.createElement("input", { style: cs.inp, placeholder: "Ej: Desarrollo Backend v1.0", value: form.concepto || "", onChange: function(e) { return set("concepto", e.target.value); } })
     )),
     React.createElement(Row, null,
       React.createElement(Fld, { label: "Categor\xEDa" },
@@ -3109,17 +3110,35 @@ function InversionForm(_ref_inv) {
         )
       ),
       React.createElement(Fld, { label: "Monto (B/.)" },
-        React.createElement("input", { type: "number", style: cs.inp, value: form.monto || "", onChange: function(e) { return set("monto", parseFloat(e.target.value) || 0); } })
+        React.createElement("input", { type: "number", style: cs.inp, placeholder: "0.00", value: form.monto || "", onChange: function(e) { return set("monto", parseFloat(e.target.value) || 0); } })
       )
     ),
+    React.createElement(Row, { cols: "1fr" }, React.createElement(Fld, { label: "Proveedor / Quién cobró" },
+      React.createElement("input", { style: cs.inp, placeholder: "Ej: Juan Pérez - Dev Backend", value: form.proveedor || "", onChange: function(e) { return set("proveedor", e.target.value); } })
+    )),
     React.createElement(Row, null,
-      React.createElement(Fld, { label: "Fecha" },
-        React.createElement("input", { type: "date", style: cs.inp, value: form.fecha || "", onChange: function(e) { return set("fecha", e.target.value); } })
-      ),
       React.createElement(Fld, { label: "Estado" },
-        React.createElement("select", { style: cs.inp, value: form.estado || "Pendiente de recuperar", onChange: function(e) { return set("estado", e.target.value); } },
+        React.createElement("select", { style: cs.inp, value: form.estado || "Presupuestado", onChange: function(e) { return set("estado", e.target.value); } },
           ESTADOS_INV.map(function(s) { return React.createElement("option", { key: s }, s); })
         )
+      ),
+      React.createElement(Fld, { label: "Fecha presupuesto / compromiso" },
+        React.createElement("input", { type: "date", style: cs.inp, value: form.fecha || "", onChange: function(e) { return set("fecha", e.target.value); } })
+      )
+    ),
+    (form.estado === "Pagado" || form.estado === "Recuperado") && React.createElement(Row, null,
+      React.createElement(Fld, { label: "Fecha de pago" },
+        React.createElement("input", { type: "date", style: cs.inp, value: form.fechaPago || "", onChange: function(e) { return set("fechaPago", e.target.value); } })
+      ),
+      React.createElement(Fld, { label: "M\xE9todo de pago" },
+        React.createElement("select", { style: cs.inp, value: form.metodoPago || "ACH", onChange: function(e) { return set("metodoPago", e.target.value); } },
+          METODOS_PAGO.map(function(m) { return React.createElement("option", { key: m }, m); })
+        )
+      )
+    ),
+    (form.estado === "Pagado" || form.estado === "Recuperado") && React.createElement(Row, { cols: "1fr" },
+      React.createElement(Fld, { label: "No. factura / recibo del proveedor" },
+        React.createElement("input", { style: cs.inp, placeholder: "Ej: FAC-001 o referencia de transferencia", value: form.refComprobante || "", onChange: function(e) { return set("refComprobante", e.target.value); } })
       )
     ),
     React.createElement(Row, { cols: "1fr" }, React.createElement(Fld, { label: "Notas (opcional)" },
@@ -3179,6 +3198,8 @@ function ProductoDetalle(_ref37) {
   }).filter(Boolean);
   var inversion = freshProd.inversion || [];
   var totalInvertido = inversion.reduce(function(s, x) { return s + (x.monto || 0); }, 0);
+  var totalPagado = inversion.filter(function(x) { return x.estado === "Pagado" || x.estado === "Recuperado"; }).reduce(function(s, x) { return s + (x.monto || 0); }, 0);
+  var totalPresupuestado = inversion.filter(function(x) { return x.estado === "Presupuestado"; }).reduce(function(s, x) { return s + (x.monto || 0); }, 0);
   // Ingresos acumulados: facturas cuyos proyectos tienen este producto vinculado
   var proyectosDelProducto = (data.proyectos || []).filter(function(p) {
     return p.productoId === freshProd.id || (p.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase();
@@ -3392,16 +3413,17 @@ function ProductoDetalle(_ref37) {
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
         React.createElement("div", { style: { fontSize: 12, color: SLATE } },
           totalInvertido > 0
-            ? React.createElement("span", null,
-                "Invertido: ", React.createElement("strong", { style: { color: AMBER } }, fmt(totalInvertido)),
-                " \xB7 Recuperado: ", React.createElement("strong", { style: { color: GREEN } }, fmt(ingresosAcumulados)),
-                " \xB7 Pendiente: ", React.createElement("strong", { style: { color: RED } }, fmt(pendienteRecuperar)),
-                mesesBreakEven ? React.createElement("span", { style: { color: SLATE } }, " \xB7 Break-even: ~", mesesBreakEven, " meses") : null
+            ? React.createElement("span", { style: { display: "flex", gap: 16, flexWrap: "wrap" } },
+                totalPresupuestado > 0 && React.createElement("span", null, "\uD83D\uDFE1 Presupuestado: ", React.createElement("strong", { style: { color: AMBER } }, fmt(totalPresupuestado))),
+                totalPagado > 0 && React.createElement("span", null, "\uD83D\uDD34 Pagado a proveedores: ", React.createElement("strong", { style: { color: RED } }, fmt(totalPagado))),
+                ingresosAcumulados > 0 && React.createElement("span", null, "\uD83D\uDFE2 Recuperado por clientes: ", React.createElement("strong", { style: { color: GREEN } }, fmt(ingresosAcumulados))),
+                pendienteRecuperar > 0 && React.createElement("span", null, "Por recuperar: ", React.createElement("strong", { style: { color: SLATE } }, fmt(pendienteRecuperar))),
+                mesesBreakEven && React.createElement("span", null, "Break-even: ~", React.createElement("strong", null, mesesBreakEven, " meses"))
               )
             : React.createElement("span", null, "Sin partidas de inversi\xF3n registradas.")
         ),
         React.createElement("button", { style: cs.btnP, onClick: function() {
-          setPf({ id: uid(), fecha: new Date().toISOString().split("T")[0], categoria: "Desarrollo", estado: "Pendiente de recuperar" });
+          setPf({ id: uid(), fecha: new Date().toISOString().split("T")[0], categoria: "Desarrollo", estado: "Presupuestado" });
           setModal("nuevaInversion");
         } }, "+ Nueva partida")
       ),
@@ -3410,21 +3432,26 @@ function ProductoDetalle(_ref37) {
       ),
       inversion.map(function(x) {
         var catColor = { "Desarrollo": PURPLE, "Dise\xF1o": MAGENTA, "Infraestructura": NAVY, "Marketing": GREEN, "Legal": AMBER, "Otro": SLATE };
-        return React.createElement("div", { key: x.id, style: Object.assign({}, cs.card, { display: "flex", justifyContent: "space-between", alignItems: "center" }) },
-          React.createElement("div", null,
-            React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 4 } },
-              React.createElement("span", { style: { fontSize: 11, padding: "2px 8px", borderRadius: 6, background: (catColor[x.categoria] || SLATE) + "22", color: catColor[x.categoria] || SLATE, fontWeight: 600 } }, x.categoria),
-              React.createElement("span", { style: { fontWeight: 700, color: NAVY } }, x.concepto)
+        var estadoColor = { "Presupuestado": AMBER, "Pagado": RED, "Recuperado": GREEN };
+        return React.createElement("div", { key: x.id, style: Object.assign({}, cs.card, { borderLeft: "3px solid " + (estadoColor[x.estado] || SLATE) }) },
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 4 } },
+                React.createElement("span", { style: { fontSize: 11, padding: "2px 8px", borderRadius: 6, background: (catColor[x.categoria] || SLATE) + "22", color: catColor[x.categoria] || SLATE, fontWeight: 600 } }, x.categoria),
+                React.createElement("span", { style: { fontWeight: 700, color: NAVY } }, x.concepto),
+                React.createElement("span", { style: { fontSize: 11, padding: "2px 8px", borderRadius: 6, background: (estadoColor[x.estado] || SLATE) + "22", color: estadoColor[x.estado] || SLATE, fontWeight: 600 } }, x.estado)
+              ),
+              React.createElement("div", { style: { fontSize: 12, color: SLATE, display: "flex", gap: 12, flexWrap: "wrap" } },
+                x.proveedor && React.createElement("span", null, "\uD83D\uDC64 ", x.proveedor),
+                x.fecha && React.createElement("span", null, "Presupuestado: ", x.fecha),
+                x.fechaPago && React.createElement("span", null, "Pagado: ", x.fechaPago, x.metodoPago ? " \xB7 " + x.metodoPago : ""),
+                x.refComprobante && React.createElement("span", null, "Ref: ", x.refComprobante),
+                x.notas && React.createElement("span", null, x.notas)
+              )
             ),
-            React.createElement("div", { style: { fontSize: 12, color: SLATE } },
-              x.fecha || "\u2014",
-              x.notas ? React.createElement("span", null, " \xB7 ", x.notas) : null
-            )
-          ),
           React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
             React.createElement("div", { style: { textAlign: "right" } },
-              React.createElement("div", { style: { fontWeight: 700, color: AMBER, fontSize: 15 } }, fmt(x.monto)),
-              React.createElement("div", { style: { fontSize: 11 } }, React.createElement(Badge, { estado: x.estado }))
+              React.createElement("div", { style: { fontWeight: 700, color: estadoColor[x.estado] || AMBER, fontSize: 15 } }, fmt(x.monto))
             ),
             React.createElement("button", { style: cs.btnX, onClick: function() { setPf(Object.assign({}, x)); setModal("editInversion"); } }, "Editar"),
             React.createElement("button", { style: Object.assign({}, cs.btnX, { color: RED }), onClick: function() {
