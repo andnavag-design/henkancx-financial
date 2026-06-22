@@ -952,7 +952,8 @@ function ProyectoForm(_ref14) {
     set = _ref14.set,
     onSave = _ref14.onSave,
     onCancel = _ref14.onCancel,
-    clientes = _ref14.clientes;
+    clientes = _ref14.clientes,
+    productos = _ref14.productos || [];
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
     cols: "1fr"
   }, /*#__PURE__*/React.createElement(Fld, {
@@ -973,7 +974,23 @@ function ProyectoForm(_ref14) {
       return set("clienteId", v);
     },
     clientes: clientes
-  }))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
+  }))), /*#__PURE__*/React.createElement(Row, {
+    cols: "1fr"
+  }, /*#__PURE__*/React.createElement(Fld, {
+    label: "Producto HenkanCX (opcional)"
+  }, /*#__PURE__*/React.createElement("select", {
+    style: cs.inp,
+    value: form.productoId || "",
+    onChange: function onChange(e) {
+      set("productoId", e.target.value);
+      var p = productos.find(function(x) { return x.id === e.target.value; });
+      set("producto", p ? p.nombre : "");
+    }
+  }, /*#__PURE__*/React.createElement("option", { value: "" }, "Sin producto vinculado"),
+    productos.map(function(p) {
+      return /*#__PURE__*/React.createElement("option", { key: p.id, value: p.id }, p.nombre);
+    })
+  ))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
     label: "Valor contrato (B/.)"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
@@ -2920,7 +2937,8 @@ function ModProyectos(_ref32) {
       onCancel: function onCancel() {
         return setModal(false);
       },
-      clientes: clientes
+      clientes: clientes,
+      productos: data.productos || []
     })));
   }
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -3073,6 +3091,43 @@ function ModProyectos(_ref32) {
 }
 
 // ── MOD PRODUCTOS ────────────────────────────────────────
+function InversionForm(_ref_inv) {
+  var form = _ref_inv.form,
+    set = _ref_inv.set,
+    onSave = _ref_inv.onSave,
+    onCancel = _ref_inv.onCancel;
+  var CATS = ["Desarrollo", "Dise\xF1o", "Infraestructura", "Marketing", "Legal", "Otro"];
+  var ESTADOS_INV = ["Pendiente de recuperar", "Recuperado"];
+  return React.createElement("div", null,
+    React.createElement(Row, { cols: "1fr" }, React.createElement(Fld, { label: "Concepto" },
+      React.createElement("input", { style: cs.inp, value: form.concepto || "", onChange: function(e) { return set("concepto", e.target.value); } })
+    )),
+    React.createElement(Row, null,
+      React.createElement(Fld, { label: "Categor\xEDa" },
+        React.createElement("select", { style: cs.inp, value: form.categoria || "Desarrollo", onChange: function(e) { return set("categoria", e.target.value); } },
+          CATS.map(function(c) { return React.createElement("option", { key: c }, c); })
+        )
+      ),
+      React.createElement(Fld, { label: "Monto (B/.)" },
+        React.createElement("input", { type: "number", style: cs.inp, value: form.monto || "", onChange: function(e) { return set("monto", parseFloat(e.target.value) || 0); } })
+      )
+    ),
+    React.createElement(Row, null,
+      React.createElement(Fld, { label: "Fecha" },
+        React.createElement("input", { type: "date", style: cs.inp, value: form.fecha || "", onChange: function(e) { return set("fecha", e.target.value); } })
+      ),
+      React.createElement(Fld, { label: "Estado" },
+        React.createElement("select", { style: cs.inp, value: form.estado || "Pendiente de recuperar", onChange: function(e) { return set("estado", e.target.value); } },
+          ESTADOS_INV.map(function(s) { return React.createElement("option", { key: s }, s); })
+        )
+      )
+    ),
+    React.createElement(Row, { cols: "1fr" }, React.createElement(Fld, { label: "Notas (opcional)" },
+      React.createElement("input", { style: cs.inp, value: form.notas || "", onChange: function(e) { return set("notas", e.target.value); } })
+    )),
+    React.createElement(SaveCancel, { onSave: onSave, onCancel: onCancel })
+  );
+}
 function ProductoDetalle(_ref37) {
   var prod = _ref37.prod,
     data = _ref37.data,
@@ -3122,8 +3177,25 @@ function ProductoDetalle(_ref37) {
   }).map(function(f) {
     return clientes.find(function(c) { return c.id === f.clienteId; });
   }).filter(Boolean);
+  var inversion = freshProd.inversion || [];
+  var totalInvertido = inversion.reduce(function(s, x) { return s + (x.monto || 0); }, 0);
+  // Ingresos acumulados: facturas cuyos proyectos tienen este producto vinculado
+  var proyectosDelProducto = (data.proyectos || []).filter(function(p) {
+    return p.productoId === freshProd.id || (p.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase();
+  });
+  var idsProyectos = new Set(proyectosDelProducto.map(function(p) { return p.id; }));
+  var ingresosAcumulados = (data.facturas || []).filter(function(f) {
+    return f.origenId && idsProyectos.has(f.origenId);
+  }).reduce(function(s, f) { return s + (f.monto || 0); }, 0);
+  // MRR del producto para calcular break-even
+  var mrrProducto = (data.fees || []).filter(function(f) {
+    return (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase() && f.estado === "Activo";
+  }).reduce(function(s, f) { return s + (f.fee || 0); }, 0);
+  var retornoPct = totalInvertido > 0 ? Math.round((ingresosAcumulados / totalInvertido) * 100) : 0;
+  var pendienteRecuperar = Math.max(0, totalInvertido - ingresosAcumulados);
+  var mesesBreakEven = mrrProducto > 0 && pendienteRecuperar > 0 ? Math.ceil(pendienteRecuperar / mrrProducto) : null;
   var tipoColor = { "Nueva funcionalidad": MAGENTA, "Mejora": PURPLE, "Fix": AMBER, "Deuda t\xE9cnica": SLATE };
-  var TABS = [{ id: "backlog", label: "Backlog" }, { id: "recurrentes", label: "Costos recurrentes" }, { id: "clientes_prod", label: "Clientes activos" }];
+  var TABS = [{ id: "backlog", label: "Backlog" }, { id: "recurrentes", label: "Costos recurrentes" }, { id: "clientes_prod", label: "Clientes activos" }, { id: "inversion", label: "Inversi\xF3n" }];
 
   function saveProd() {
     setData(function(d) {
@@ -3195,7 +3267,11 @@ function ProductoDetalle(_ref37) {
       React.createElement(Metric, { label: "Solicitados", val: backlog.filter(function(x) { return x.estado === "Solicitado"; }).length, color: AMBER }),
       React.createElement(Metric, { label: "Ejecutados", val: backlog.filter(function(x) { return x.estado === "Ejecutado"; }).length, color: GREEN }),
       React.createElement(Metric, { label: "Costo total", val: fmt(backlog.reduce(function(s, x) { return s + (x.costoReal || x.costoEst || 0); }, 0)), color: RED }),
-      React.createElement(Metric, { label: "Clientes activos", val: clientesActivos.length, color: PURPLE })
+      React.createElement(Metric, { label: "Clientes activos", val: clientesActivos.length, color: PURPLE }),
+      totalInvertido > 0 && React.createElement(Metric, { label: "Total invertido", val: fmt(totalInvertido), color: AMBER }),
+      totalInvertido > 0 && React.createElement(Metric, { label: "Ingreso acumulado", val: fmt(ingresosAcumulados), color: GREEN }),
+      totalInvertido > 0 && React.createElement(Metric, { label: "Retorno", val: retornoPct + "%", color: retornoPct >= 100 ? GREEN : retornoPct >= 50 ? AMBER : RED }),
+      mesesBreakEven && React.createElement(Metric, { label: "Break-even est.", val: mesesBreakEven + " meses", color: SLATE })
     ),
     React.createElement(Tabs, { tabs: TABS, active: tab, onChange: setTab }),
 
@@ -3248,7 +3324,7 @@ function ProductoDetalle(_ref37) {
             React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
               React.createElement("div", { style: { textAlign: "right" } },
                 React.createElement("div", { style: { fontWeight: 700, color: RED } }, fmt(x.monto), " ", React.createElement("span", { style: { fontSize: 11, color: SLATE, fontWeight: 400 } }, "/ ", x.frecuencia || "Mensual")),
-                x.frecuencia && x.frecuencia !== "Mensual" && React.createElement("div", { style: { fontSize: 11, color: SLATE } }, "\u2248 ", fmt(montoMensual(x)), "/mes")
+                x.frecuencia && x.frecuencia !== "Mensual" && x.frecuencia !== "Pago \u00FAnico" && React.createElement("div", { style: { fontSize: 11, color: SLATE } }, "\u2248 ", fmt(montoMensual(x)), "/mes")
               ),
               React.createElement(Badge, { estado: x.estado || "Activo" }),
               React.createElement("button", { onClick: function() { setPf(_objectSpread({}, x)); setModal("recBase"); }, style: cs.btnX }, "Editar"),
@@ -3269,7 +3345,7 @@ function ProductoDetalle(_ref37) {
             React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
               React.createElement("div", { style: { textAlign: "right" } },
                 React.createElement("div", { style: { fontWeight: 700, color: RED } }, fmt(x.monto), " ", React.createElement("span", { style: { fontSize: 11, color: SLATE, fontWeight: 400 } }, "/ ", x.frecuencia || "Mensual")),
-                x.frecuencia && x.frecuencia !== "Mensual" && React.createElement("div", { style: { fontSize: 11, color: SLATE } }, "\u2248 ", fmt(montoMensual(x)), "/mes")
+                x.frecuencia && x.frecuencia !== "Mensual" && x.frecuencia !== "Pago \u00FAnico" && React.createElement("div", { style: { fontSize: 11, color: SLATE } }, "\u2248 ", fmt(montoMensual(x)), "/mes")
               ),
               React.createElement(Badge, { estado: x.estado || "Activo" }),
               React.createElement("button", { onClick: function() { setPf(_objectSpread({}, x)); setModal("recCliente"); }, style: cs.btnX }, "Editar"),
@@ -3289,19 +3365,78 @@ function ProductoDetalle(_ref37) {
         var fee = (data.fees || []).find(function(f) {
           return f.clienteId === x.id && (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase();
         });
+        var esPagoUnico = fee && fee.frecuencia === "Pago \xFAnico";
+        var labelMonto = fee ? (esPagoUnico ? fmt(fee.fee) : fmt(fee.fee) + "/mes") : null;
         return React.createElement("div", { key: x.id, style: _objectSpread(_objectSpread({}, cs.card), {}, { display: "flex", justifyContent: "space-between", alignItems: "center" }) },
           React.createElement("div", null,
             React.createElement("div", { style: { fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" } }, x.nombre),
-            React.createElement("div", { style: { fontSize: 12, color: SLATE, marginTop: 2 } }, x.sector || "", " \xB7 ", x.pais || "")
+            React.createElement("div", { style: { fontSize: 12, color: SLATE, marginTop: 2 } },
+              x.sector || "", " \xB7 ", x.pais || "",
+              fee && fee.frecuencia ? React.createElement("span", { style: { marginLeft: 6, color: PURPLE } }, " \xB7 ", fee.frecuencia) : null
+            )
           ),
           React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-            fee && React.createElement("span", { style: { fontWeight: 700, color: MAGENTA } }, fmt(fee.fee), "/mes"),
-            React.createElement(Badge, { estado: x.estado })
+            labelMonto && React.createElement("span", { style: { fontWeight: 700, color: MAGENTA } }, labelMonto),
+            React.createElement(Badge, { estado: fee ? (fee.estado || "Activo") : x.estado }),
+            fee && React.createElement("button", { style: cs.btnX, onClick: function() { setPf(Object.assign({}, fee)); setModal("editFee"); } }, "Editar"),
+            fee && React.createElement("button", { style: Object.assign({}, cs.btnX, { color: RED }), onClick: function() {
+              var feeId = fee.id;
+              setData(function(d) { return Object.assign({}, d, { fees: d.fees.filter(function(f) { return f.id !== feeId; }) }); });
+            } }, "\xD7")
           )
         );
       })
     ),
 
+    tab === "inversion" && React.createElement("div", null,
+      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+        React.createElement("div", { style: { fontSize: 12, color: SLATE } },
+          totalInvertido > 0
+            ? React.createElement("span", null,
+                "Invertido: ", React.createElement("strong", { style: { color: AMBER } }, fmt(totalInvertido)),
+                " \xB7 Recuperado: ", React.createElement("strong", { style: { color: GREEN } }, fmt(ingresosAcumulados)),
+                " \xB7 Pendiente: ", React.createElement("strong", { style: { color: RED } }, fmt(pendienteRecuperar)),
+                mesesBreakEven ? React.createElement("span", { style: { color: SLATE } }, " \xB7 Break-even: ~", mesesBreakEven, " meses") : null
+              )
+            : React.createElement("span", null, "Sin partidas de inversi\xF3n registradas.")
+        ),
+        React.createElement("button", { style: cs.btnP, onClick: function() {
+          setPf({ id: uid(), fecha: new Date().toISOString().split("T")[0], categoria: "Desarrollo", estado: "Pendiente de recuperar" });
+          setModal("nuevaInversion");
+        } }, "+ Nueva partida")
+      ),
+      inversion.length === 0 && React.createElement("div", { style: Object.assign({}, cs.card, { textAlign: "center", padding: "2rem", color: SLATE }) },
+        "Registra aqu\xED los gastos de desarrollo, dise\xF1o, infraestructura u otros costos de construcci\xF3n del producto."
+      ),
+      inversion.map(function(x) {
+        var catColor = { "Desarrollo": PURPLE, "Dise\xF1o": MAGENTA, "Infraestructura": NAVY, "Marketing": GREEN, "Legal": AMBER, "Otro": SLATE };
+        return React.createElement("div", { key: x.id, style: Object.assign({}, cs.card, { display: "flex", justifyContent: "space-between", alignItems: "center" }) },
+          React.createElement("div", null,
+            React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 4 } },
+              React.createElement("span", { style: { fontSize: 11, padding: "2px 8px", borderRadius: 6, background: (catColor[x.categoria] || SLATE) + "22", color: catColor[x.categoria] || SLATE, fontWeight: 600 } }, x.categoria),
+              React.createElement("span", { style: { fontWeight: 700, color: NAVY } }, x.concepto)
+            ),
+            React.createElement("div", { style: { fontSize: 12, color: SLATE } },
+              x.fecha || "\u2014",
+              x.notas ? React.createElement("span", null, " \xB7 ", x.notas) : null
+            )
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+            React.createElement("div", { style: { textAlign: "right" } },
+              React.createElement("div", { style: { fontWeight: 700, color: AMBER, fontSize: 15 } }, fmt(x.monto)),
+              React.createElement("div", { style: { fontSize: 11 } }, React.createElement(Badge, { estado: x.estado }))
+            ),
+            React.createElement("button", { style: cs.btnX, onClick: function() { setPf(Object.assign({}, x)); setModal("editInversion"); } }, "Editar"),
+            React.createElement("button", { style: Object.assign({}, cs.btnX, { color: RED }), onClick: function() {
+              var xid = x.id;
+              setData(function(d) { return Object.assign({}, d, { productos: d.productos.map(function(p) {
+                return p.id === prod.id ? Object.assign({}, p, { inversion: (p.inversion || []).filter(function(i) { return i.id !== xid; }) }) : p;
+              }) }); });
+            } }, "\xD7")
+          )
+        );
+      })
+    ),
     modal === "producto" && React.createElement(Modal, { title: "Editar producto", onClose: function() { return setModal(null); } },
       React.createElement(ProductoForm, { form: pf, set: pset, onSave: saveProd, onCancel: function() { return setModal(null); } })
     ),
@@ -3319,6 +3454,29 @@ function ProductoDetalle(_ref37) {
     ),
     modal === "nuevoFee" && React.createElement(Modal, { title: "Agregar cliente activo", onClose: function() { return setModal(null); } },
       React.createElement(FeeForm, { form: pf, set: pset, onSave: addFeeCliente, onCancel: function() { return setModal(null); }, clientes: clientes, productos: data.productos || [] })
+    ),
+    modal === "editFee" && React.createElement(Modal, { title: "Editar cliente activo", onClose: function() { return setModal(null); } },
+      React.createElement(FeeForm, { form: pf, set: pset, onSave: function() {
+        setData(function(d) { return Object.assign({}, d, { fees: d.fees.map(function(f) { return f.id === pf.id ? Object.assign({}, pf) : f; }) }); });
+        setModal(null); setPf({});
+      }, onCancel: function() { return setModal(null); }, clientes: clientes, productos: data.productos || [] })
+    ),
+    modal === "nuevaInversion" && React.createElement(Modal, { title: "Nueva partida de inversi\xF3n", onClose: function() { return setModal(null); } },
+      React.createElement(InversionForm, { form: pf, set: pset, onSave: function() {
+        if (!pf.concepto || !pf.monto) return;
+        setData(function(d) { return Object.assign({}, d, { productos: d.productos.map(function(p) {
+          return p.id === prod.id ? Object.assign({}, p, { inversion: [].concat(p.inversion || [], [Object.assign({}, pf)]) }) : p;
+        }) }); });
+        setModal(null); setPf({});
+      }, onCancel: function() { return setModal(null); } })
+    ),
+    modal === "editInversion" && React.createElement(Modal, { title: "Editar partida de inversi\xF3n", onClose: function() { return setModal(null); } },
+      React.createElement(InversionForm, { form: pf, set: pset, onSave: function() {
+        setData(function(d) { return Object.assign({}, d, { productos: d.productos.map(function(p) {
+          return p.id === prod.id ? Object.assign({}, p, { inversion: (p.inversion || []).map(function(i) { return i.id === pf.id ? Object.assign({}, pf) : i; }) }) : p;
+        }) }); });
+        setModal(null); setPf({});
+      }, onCancel: function() { return setModal(null); } })
     )
   );
 }
@@ -3637,7 +3795,7 @@ function FeeDetalle(_ref41) {
     label: "Monto contrato",
     val: "".concat(fmt(freshFee.fee), " / ").concat(freshFee.frecuencia || "Mensual"),
     color: PURPLE
-  }), freshFee.frecuencia && freshFee.frecuencia !== "Mensual" && /*#__PURE__*/React.createElement(Metric, {
+  }), freshFee.frecuencia && freshFee.frecuencia !== "Mensual" && freshFee.frecuencia !== "Pago \u00FAnico" && /*#__PURE__*/React.createElement(Metric, {
     label: "Equiv./mes",
     val: fmt(montoMensual({
       monto: freshFee.fee,
@@ -3864,7 +4022,7 @@ function ModFees(_ref42) {
         color: SLATE,
         marginTop: 2
       }
-    }, f.producto || "Sin producto", " \xB7 ", /*#__PURE__*/React.createElement("strong", null, fmt(f.fee), " / ", f.frecuencia || "Mensual"), f.frecuencia && f.frecuencia !== "Mensual" && /*#__PURE__*/React.createElement("span", {
+    }, f.producto || "Sin producto", " \xB7 ", /*#__PURE__*/React.createElement("strong", null, fmt(f.fee), " / ", f.frecuencia || "Mensual"), f.frecuencia && f.frecuencia !== "Mensual" && f.frecuencia !== "Pago \u00FAnico" && /*#__PURE__*/React.createElement("span", {
       style: {
         color: SLATE
       }
@@ -4584,7 +4742,7 @@ function ModRecurrentes(_ref45) {
         color: SLATE,
         fontWeight: 400
       }
-    }, "/ ", x.frecuencia || "Mensual")), x.frecuencia && x.frecuencia !== "Mensual" && /*#__PURE__*/React.createElement("div", {
+    }, "/ ", x.frecuencia || "Mensual")), x.frecuencia && x.frecuencia !== "Mensual" && x.frecuencia !== "Pago \u00FAnico" && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: SLATE
