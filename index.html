@@ -308,14 +308,15 @@ var PRODUCTOS_HKX = ["Chatbot IA", "Contact Center IA", "Snnapi", "TeleInspect S
 var PROVEEDORES = ["AWS", "Google Cloud", "Azure", "DigitalOcean", "Cloudflare", "Twilio", "OpenAI", "GitHub", "Supabase", "Otro"];
 var SECTORES = ["Seguros", "Telecom", "Retail", "Hotelería", "Automotriz", "Deportivo", "Ganadero", "Finanzas", "Salud", "Educación", "Otro"];
 var PAISES = ["Panamá", "Costa Rica", "Guatemala", "El Salvador", "Honduras", "Nicaragua", "Colombia", "México", "Otro"];
-var FRECUENCIAS = ["Mensual", "Bimensual", "Trimestral", "Cuatrimestral", "Semestral", "Anual"];
+var FRECUENCIAS = ["Mensual", "Bimensual", "Trimestral", "Cuatrimestral", "Semestral", "Anual", "Pago \xFAnico"];
 var FREQ_DIV = {
   "Mensual": 1,
   "Bimensual": 2,
   "Trimestral": 3,
   "Cuatrimestral": 4,
   "Semestral": 6,
-  "Anual": 12
+  "Anual": 12,
+  "Pago \xFAnico": 1
 };
 var montoMensual = function montoMensual(x) {
   return (x.monto || 0) / (FREQ_DIV[x.frecuencia || "Mensual"] || 1);
@@ -1366,13 +1367,12 @@ function FacturaForm(_ref19) {
   })), /*#__PURE__*/React.createElement(Fld, {
     label: "Cliente"
   }, /*#__PURE__*/React.createElement(ClienteSelect, {
-    value: form.clienteId,
+    value: form.clienteId || "",
     onChange: function onChange(v) {
       set("clienteId", v);
-      var c = (clientes || []).find(function (x) {
-        return x.id === v;
-      });
-      if (c) set("cliente", c.nombre);
+      set("origenId", "");
+      var c = (clientes || []).find(function (x) { return x.id === v; });
+      set("cliente", c ? c.nombre : "");
     },
     clientes: clientes
   }))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
@@ -3950,6 +3950,11 @@ function ModFacturas(_ref43) {
     if (!entry.numero) {
       var count = (facturas.length + 1).toString().padStart(3, "0");
       entry.numero = "FAC-".concat(count);
+    }
+    // Siempre recalcular nombre del cliente desde clienteId para evitar desync
+    if (entry.clienteId) {
+      var cl = clientes.find(function(c) { return c.id === entry.clienteId; });
+      if (cl) entry.cliente = cl.nombre;
     }
     var ex = facturas.find(function (f) {
       return f.id === entry.id;
