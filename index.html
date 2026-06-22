@@ -2546,7 +2546,7 @@ function ModClientesMaster(_ref29) {
     var fees = (data.fees || []).filter(function (f) { return f.clienteId === sel.id; });
     var proyectos = (data.proyectos || []).filter(function (p) { return p.clienteId === sel.id; });
     var recurrentes = _toConsumableArray(((data.recurrentes || {}).porCliente || []).filter(function (r) { return r.clienteId === sel.id; }));
-    var mrr = fees.filter(function (f) { return f.estado === "Activo"; }).reduce(function (s, f) { return s + (f.fee || 0); }, 0);
+    var mrr = fees.filter(function (f) { return f.estado === "Activo" && f.frecuencia !== "Pago \u00FAnico"; }).reduce(function (s, f) { return s + (f.fee || 0); }, 0);
     return React.createElement("div", null,
       React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" } },
         React.createElement("button", { onClick: goBack, style: cs.btnS }, "\u2190 Clientes"),
@@ -2614,7 +2614,7 @@ function ModClientesMaster(_ref29) {
     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } },
       clientes.map(function(c) {
         var cfees = (data.fees || []).filter(function(f) { return f.clienteId === c.id && f.estado === "Activo"; });
-        var cmrr = cfees.reduce(function(s, f) { return s + montoMensual({ monto: f.fee, frecuencia: f.frecuencia }); }, 0);
+        var cmrr = cfees.filter(function(f) { return f.frecuencia !== "Pago \u00FAnico"; }).reduce(function(s, f) { return s + montoMensual({ monto: f.fee, frecuencia: f.frecuencia }); }, 0);
         var cproys = (data.proyectos || []).filter(function(p) { return p.clienteId === c.id; }).length;
         return React.createElement("div", {
           key: c.id,
@@ -3211,7 +3211,7 @@ function ProductoDetalle(_ref37) {
   }).reduce(function(s, f) { return s + (f.monto || 0); }, 0);
   // MRR del producto para calcular break-even
   var mrrProducto = (data.fees || []).filter(function(f) {
-    return (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase() && f.estado === "Activo";
+    return (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase() && f.estado === "Activo" && f.frecuencia !== "Pago \u00FAnico";
   }).reduce(function(s, f) { return s + (f.fee || 0); }, 0);
   var retornoPct = totalInvertido > 0 ? Math.round((ingresosAcumulados / totalInvertido) * 100) : 0;
   var pendienteRecuperar = Math.max(0, totalInvertido - ingresosAcumulados);
@@ -5390,7 +5390,7 @@ function ModSocios(_ref51) {
   };
   var dist = data.distribucion || [];
   var mrr = (data.fees || []).filter(function (x) {
-    return x.estado === "Activo";
+    return x.estado === "Activo" && x.frecuencia !== "Pago \u00FAnico";
   }).reduce(function (s, x) {
     return s + montoMensual({
       monto: x.fee,
@@ -5626,7 +5626,7 @@ function ModSocios(_ref51) {
 function ModDashboard(_ref52) {
   var data = _ref52.data;
   var mrr = (data.fees || []).filter(function (x) {
-    return x.estado === "Activo";
+    return x.estado === "Activo" && x.frecuencia !== "Pago \u00FAnico";
   }).reduce(function (s, x) {
     return s + montoMensual({
       monto: x.fee,
