@@ -3448,9 +3448,10 @@ function ProductoDetalle(_ref37) {
                 x.refComprobante && React.createElement("span", null, "Ref: ", x.refComprobante),
                 x.notas && React.createElement("span", null, x.notas)
               )
-            ),
-          React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-            React.createElement("div", { style: { textAlign: "right" } },
+            )
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", marginTop: 8, justifyContent: "flex-end" } },
+            React.createElement("div", { style: { textAlign: "right", marginRight: 8 } },
               React.createElement("div", { style: { fontWeight: 700, color: estadoColor[x.estado] || AMBER, fontSize: 15 } }, fmt(x.monto))
             ),
             React.createElement("button", { style: cs.btnX, onClick: function() { setPf(Object.assign({}, x)); setModal("editInversion"); } }, "Editar"),
