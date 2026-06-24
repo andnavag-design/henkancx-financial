@@ -5383,6 +5383,10 @@ function ModSocios(_ref51) {
       frecuencia: x.frecuencia
     });
   }, 0);
+  var gastosCorp = (data.gastos || []).reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+  var recBase = ((data.recurrentes || {}).base || []).filter(function (x) { return x.estado === "Activo"; }).reduce(function (s, x) { return s + montoMensual(x); }, 0);
+  var recCli = ((data.recurrentes || {}).porCliente || []).filter(function (x) { return x.estado === "Activo"; }).reduce(function (s, x) { return s + montoMensual(x); }, 0);
+  var baseNeta = Math.max(0, mrr - gastosCorp - recBase - recCli);
   function saveDist() {
     if (!df.mes || !df.monto) return;
     setData(function (d) {
@@ -5481,7 +5485,7 @@ function ModSocios(_ref51) {
       style: {
         color: PURPLE
       }
-    }, fmt(mrr * (DIST.dividendos / 100) * (s.pct / 100)))));
+    }, fmt(baseNeta * (DIST.dividendos / 100) * (s.pct / 100)))));
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -5838,7 +5842,7 @@ function ModDashboard(_ref52) {
       fontFamily: "Poppins,sans-serif",
       marginBottom: 8
     }
-  }, "Distribuci\xF3n mensual (sobre MRR)"), [["Capital Operativo", DIST.operativo, NAVY], ["Repago inversión", DIST.repago, PURPLE], ["Dividendos (socios)", DIST.dividendos, MAGENTA]].map(function (_ref53) {
+  }, "Distribuci\xF3n mensual (sobre margen neto)"), [["Capital Operativo", DIST.operativo, NAVY], ["Repago inversión", DIST.repago, PURPLE], ["Dividendos (socios)", DIST.dividendos, MAGENTA]].map(function (_ref53) {
     var _ref54 = _slicedToArray(_ref53, 3),
       l = _ref54[0],
       p = _ref54[1],
@@ -5861,7 +5865,7 @@ function ModDashboard(_ref52) {
         fontWeight: 600,
         color: col
       }
-    }, fmt(mrr * p / 100)));
+    }, fmt(margen * p / 100)));
   })), /*#__PURE__*/React.createElement("div", {
     style: cs.card
   }, /*#__PURE__*/React.createElement("div", {
@@ -5891,7 +5895,7 @@ function ModDashboard(_ref52) {
         fontWeight: 600,
         color: MAGENTA
       }
-    }, fmt(mrr * (DIST.dividendos / 100) * (s.pct / 100))));
+    }, fmt(margen * (DIST.dividendos / 100) * (s.pct / 100))));
   }))));
 }
 
