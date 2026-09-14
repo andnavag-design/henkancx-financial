@@ -290,6 +290,102 @@ var DIST = {
 var ROLES_COSTO = ["Project Manager", "Dev Backend", "Dev Frontend", "QA / Testing", "Varios", "Otro"];
 var CATS_CORP = ["Nómina / Contratistas", "Infraestructura propia", "Marketing / Ventas", "Legal / Administrativo", "Herramientas SaaS", "Oficina", "Otro"];
 var METODOS = ["ACH", "Cheque", "Transferencia", "Efectivo", "Tarjeta"];
+var ESTADOS_GASTO = ["Pagado", "Pendiente", "Mora", "Cancelado"];
+var RECURRENCIAS_GASTO = ["\xDAnico", "Mensual", "Bimensual", "Trimestral", "Cuatrimestral", "Semestral", "Anual"];
+var MESES_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+function mesActualKey() {
+  var d = new Date();
+  var m = d.getMonth() + 1;
+  return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m;
+}
+function mesDeGasto(g) {
+  if (!g) return "";
+  if (g.mesPeriodo) return String(g.mesPeriodo).slice(0, 7);
+  if (g.fecha) return String(g.fecha).slice(0, 7);
+  return "";
+}
+function mesLabel(ym) {
+  if (!ym) return "Sin mes";
+  var p = String(ym).split("-");
+  var i = parseInt(p[1], 10) - 1;
+  if (isNaN(i) || !MESES_ES[i]) return String(ym);
+  return MESES_ES[i] + " " + p[0];
+}
+function mesPrevio(ym) {
+  if (!ym) return "";
+  var p = String(ym).split("-");
+  var y = parseInt(p[0], 10), m = parseInt(p[1], 10) - 1;
+  if (m < 1) { m = 12; y--; }
+  return y + "-" + (m < 10 ? "0" : "") + m;
+}
+function mesesDisponibles(gastos) {
+  var set = {};
+  (gastos || []).forEach(function (g) { var k = mesDeGasto(g); if (k) set[k] = 1; });
+  return Object.keys(set).sort().reverse();
+}
+function gastoVigente(g) {
+  return !!g && g.estado !== "Cancelado";
+}
+function totalMes(gastos, ym) {
+  return (gastos || []).filter(function (g) { return gastoVigente(g) && mesDeGasto(g) === ym; })
+    .reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+}
+function totalMesEstado(gastos, ym, estados) {
+  return (gastos || []).filter(function (g) {
+    return gastoVigente(g) && mesDeGasto(g) === ym && estados.indexOf(g.estado || "Pagado") >= 0;
+  }).reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+}
+var MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+function parseMesTexto(t) {
+  if (!t) return "";
+  var str = String(t).trim();
+  var iso = str.match(/^(\d{4})-(\d{2})/);
+  if (iso) return str.slice(0, 7);
+  var low = str.toLowerCase();
+  var y = low.match(/(19|20)\d{2}/);
+  for (var i = 0; i < MESES_LARGOS.length; i++) {
+    if (low.indexOf(MESES_LARGOS[i].slice(0, 3)) >= 0) {
+      var mm = i + 1;
+      return (y ? y[0] : String(new Date().getFullYear())) + "-" + (mm < 10 ? "0" : "") + mm;
+    }
+  }
+  return "";
+}
+function mesDePago(pago) {
+  if (!pago) return "";
+  if (pago.mesPeriodo) return String(pago.mesPeriodo).slice(0, 7);
+  var t = parseMesTexto(pago.mes);
+  if (t) return t;
+  if (pago.fecha) return String(pago.fecha).slice(0, 7);
+  return "";
+}
+function recTodos(data) {
+  var r = (data || {}).recurrentes || {};
+  return (r.base || []).concat(r.porCliente || []);
+}
+function mesesRecurrentes(data) {
+  var set = {};
+  recTodos(data).forEach(function (it) {
+    (it.pagos || []).forEach(function (pg) {
+      var k = mesDePago(pg);
+      if (k) set[k] = 1;
+    });
+  });
+  set[mesActualKey()] = 1;
+  return Object.keys(set).sort().reverse();
+}
+function mesRecVigente(data) {
+  var hoy = mesActualKey();
+  var lista = mesesRecurrentes(data);
+  if (lista.indexOf(hoy) >= 0) return hoy;
+  return lista.length ? lista[0] : hoy;
+}
+function mesGastosVigente(gastos) {
+  var hoy = mesActualKey();
+  var lista = mesesDisponibles(gastos);
+  if (lista.indexOf(hoy) >= 0) return hoy;
+  return lista.length ? lista[0] : hoy;
+}
 var PRODUCTOS_HKX = ["Chatbot IA", "Contact Center IA", "Snnapi", "TeleInspect Suite", "SIFED", "Sistema Ganadero", "Integraciones"];
 var PROVEEDORES = ["AWS", "Google Cloud", "Azure", "DigitalOcean", "Cloudflare", "Twilio", "OpenAI", "GitHub", "Supabase", "Otro"];
 var SECTORES = ["Seguros", "Telecom", "Retail", "Hotelería", "Automotriz", "Deportivo", "Ganadero", "Finanzas", "Salud", "Educación", "Otro"];
@@ -379,6 +475,26 @@ function migrate(d) {
   if (!d.recurrentes.base) d.recurrentes.base = [];
   if (!d.recurrentes.porCliente) d.recurrentes.porCliente = [];
   if (!d.productos) d.productos = [];
+  if (!d.gastos) d.gastos = [];
+  d.gastos = d.gastos.map(function (g) {
+    if (!g) return g;
+    if (!g.mesPeriodo) {
+      g.mesPeriodo = g.fecha ? String(g.fecha).slice(0, 7) : "";
+    }
+    if (!g.estado) g.estado = "Pagado";
+    return g;
+  });
+  var _rec = d.recurrentes || {};
+  ["base", "porCliente"].forEach(function (k) {
+    (_rec[k] || []).forEach(function (it) {
+      (it.pagos || []).forEach(function (pg) {
+        if (pg && !pg.mesPeriodo) {
+          var t = parseMesTexto(pg.mes);
+          pg.mesPeriodo = t || (pg.fecha ? String(pg.fecha).slice(0, 7) : "");
+        }
+      });
+    });
+  });
   return d;
 }
 var NAV = [{
@@ -1631,13 +1747,53 @@ function GastoCorporativoForm(_ref20) {
       whiteSpace: "nowrap"
     })
   }, "+ Agregar")), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
-    label: "Fecha"
+    label: "Mes correspondiente"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "month",
+    style: cs.inp,
+    value: form.mesPeriodo || "",
+    onChange: function onChange(e) {
+      set("mesPeriodo", e.target.value);
+      set("_mesManual", true);
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: { fontSize: 10, color: SLATE }
+  }, "Mes al que se imputa el gasto")), /*#__PURE__*/React.createElement(Fld, {
+    label: "Periodicidad"
+  }, /*#__PURE__*/React.createElement("select", {
+    style: cs.inp,
+    value: form.recurrencia || "\xDAnico",
+    onChange: function onChange(e) {
+      return set("recurrencia", e.target.value);
+    }
+  }, RECURRENCIAS_GASTO.map(function (r) {
+    return /*#__PURE__*/React.createElement("option", { key: r }, r);
+  })), /*#__PURE__*/React.createElement("span", {
+    style: { fontSize: 10, color: SLATE }
+  }, "Etiqueta informativa (no prorratea)"))), /*#__PURE__*/React.createElement(Row, {
+    cols: "1fr 1fr 1fr"
+  }, /*#__PURE__*/React.createElement(Fld, {
+    label: "Estado"
+  }, /*#__PURE__*/React.createElement("select", {
+    style: cs.inp,
+    value: form.estado || "Pagado",
+    onChange: function onChange(e) {
+      return set("estado", e.target.value);
+    }
+  }, ESTADOS_GASTO.map(function (es) {
+    return /*#__PURE__*/React.createElement("option", { key: es }, es);
+  })), /*#__PURE__*/React.createElement("span", {
+    style: { fontSize: 10, color: SLATE }
+  }, "Cancelado no suma en ning\xFAn total")), /*#__PURE__*/React.createElement(Fld, {
+    label: "Fecha de pago"
   }, /*#__PURE__*/React.createElement("input", {
     type: "date",
     style: cs.inp,
     value: form.fecha || "",
     onChange: function onChange(e) {
-      return set("fecha", e.target.value);
+      var v = e.target.value;
+      set("fecha", v);
+      if (v && !form._mesManual) set("mesPeriodo", String(v).slice(0, 7));
     }
   })), /*#__PURE__*/React.createElement(Fld, {
     label: "Qui\xE9n pag\xF3"
@@ -1941,14 +2097,16 @@ function PagoRecurrenteForm(_ref24) {
     onSave = _ref24.onSave,
     onCancel = _ref24.onCancel;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Fld, {
-    label: "Mes"
+    label: "Mes correspondiente"
   }, /*#__PURE__*/React.createElement("input", {
+    type: "month",
     style: cs.inp,
-    value: form.mes || "",
+    value: form.mesPeriodo || parseMesTexto(form.mes) || "",
     onChange: function onChange(e) {
-      return set("mes", e.target.value);
-    },
-    placeholder: "Ej. Mayo 2025"
+      var v = e.target.value;
+      set("mesPeriodo", v);
+      set("mes", v ? mesLabel(v) : "");
+    }
   })), /*#__PURE__*/React.createElement(Fld, {
     label: "Monto (B/.)"
   }, /*#__PURE__*/React.createElement("input", {
@@ -4379,7 +4537,9 @@ function RecurrenteDetalle(_ref44) {
       id: uid(),
       estado: "Pagado",
       metodo: "ACH",
-      monto: item.monto || 0
+      monto: item.monto || 0,
+      mesPeriodo: mesActualKey(),
+      mes: mesLabel(mesActualKey())
     }),
     _useState70 = _slicedToArray(_useState69, 2),
     nf = _useState70[0],
@@ -4455,7 +4615,11 @@ function RecurrenteDetalle(_ref44) {
     val: cn,
     color: PURPLE
   })), /*#__PURE__*/React.createElement(InlineList, {
-    items: pagos,
+    items: pagos.slice().sort(function (a, b) {
+      var ka = mesDePago(a), kb = mesDePago(b);
+      if (ka !== kb) return ka < kb ? 1 : -1;
+      return 0;
+    }),
     cols: ["Mes", "Monto", "Fecha", "Método", "Referencia", "Estado"],
     btnLabel: "+ Registrar pago",
     emptyMsg: "Sin pagos.",
@@ -4474,7 +4638,9 @@ function RecurrenteDetalle(_ref44) {
               id: uid(),
               estado: "Pagado",
               metodo: "ACH",
-              monto: item.monto || 0
+              monto: item.monto || 0,
+              mesPeriodo: mesActualKey(),
+              mes: mesLabel(mesActualKey())
             });
             close();
           }
@@ -4521,7 +4687,7 @@ function RecurrenteDetalle(_ref44) {
         style: _objectSpread(_objectSpread({}, cs.td), {}, {
           fontWeight: 500
         })
-      }, p.mes), /*#__PURE__*/React.createElement("td", {
+      }, mesDePago(p) ? mesLabel(mesDePago(p)) : p.mes || "\u2014"), /*#__PURE__*/React.createElement("td", {
         key: "mo",
         style: _objectSpread(_objectSpread({}, cs.td), {}, {
           fontWeight: 600
@@ -4571,6 +4737,9 @@ function ModRecurrentes(_ref45) {
     _useState86 = _slicedToArray(_useState85, 2),
     form = _useState86[0],
     setForm = _useState86[1];
+  var _msR = useState(function () { return mesRecVigente(data); }), fMesRec = _msR[0], setFMesRec = _msR[1];
+  var _msE = useState(""), fEstMes = _msE[0], setFEstMes = _msE[1];
+  var elR = React.createElement;
   var fset = function fset(k, v) {
     return setForm(function (f) {
       return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
@@ -4698,6 +4867,77 @@ function ModRecurrentes(_ref45) {
   }).reduce(function (s, x) {
     return s + montoMensual(x);
   }, 0);
+  var listaMesesRec = mesesRecurrentes(data);
+  var activosRec = base.concat(porCliente).filter(function (x) { return x.estado === "Activo"; });
+  var pagosMes = function pagosMes(x) {
+    return (x.pagos || []).filter(function (pg) { return mesDePago(pg) === fMesRec; });
+  };
+  var montoEstadoMes = function montoEstadoMes(x, est) {
+    return pagosMes(x).filter(function (pg) { return est.indexOf(pg.estado) >= 0; })
+      .reduce(function (sm, pg) { return sm + (pg.monto || 0); }, 0);
+  };
+  var estadoMesItem = function estadoMesItem(x) {
+    var ps = pagosMes(x);
+    if (!ps.length) return "sin";
+    if (ps.some(function (pg) { return pg.estado === "Pendiente" || pg.estado === "Mora"; })) return "pendiente";
+    return "pagado";
+  };
+  var pagadoMes = 0, pendienteMes = 0;
+  base.concat(porCliente).forEach(function (x) {
+    pagadoMes += montoEstadoMes(x, ["Pagado"]);
+    pendienteMes += montoEstadoMes(x, ["Pendiente", "Mora"]);
+  });
+  var comprometido = totalBase + totalCli;
+  var sinRegistro = activosRec.filter(function (x) { return estadoMesItem(x) === "sin"; }).length;
+  var conRegistro = activosRec.length - sinRegistro;
+  var brecha = comprometido - pagadoMes;
+  var totalMesPagado = function totalMesPagado(ym) {
+    var t = 0;
+    base.concat(porCliente).forEach(function (x) {
+      (x.pagos || []).forEach(function (pg) {
+        if (mesDePago(pg) === ym && pg.estado === "Pagado") t += pg.monto || 0;
+      });
+    });
+    return t;
+  };
+  var filtroMes = function filtroMes(x) {
+    if (!fEstMes) return true;
+    return estadoMesItem(x) === fEstMes;
+  };
+  var baseF = base.filter(filtroMes);
+  var cliF = porCliente.filter(filtroMes);
+  var selStyleR = _objectSpread(_objectSpread({}, cs.inp), {}, { width: "auto", minWidth: 130, padding: "5px 8px", fontSize: 12 });
+
+  function ChipMesRec(_props) {
+    var m = _props.m;
+    var act = fMesRec === m;
+    return elR("button", {
+      onClick: function () { setFMesRec(m); },
+      style: {
+        cursor: "pointer", borderRadius: 10, padding: "8px 12px", textAlign: "left",
+        border: "1px solid " + (act ? MAGENTA : "rgba(13,27,42,0.1)"),
+        background: act ? MAGENTA + "12" : "#fff", fontFamily: "Inter,sans-serif"
+      }
+    },
+      elR("div", { style: { fontSize: 11, color: SLATE } }, mesLabel(m)),
+      elR("div", { style: { fontSize: 14, fontWeight: 700, color: act ? MAGENTA : NAVY, fontFamily: "Poppins,sans-serif" } }, fmt(totalMesPagado(m)))
+    );
+  }
+
+  function EstadoMesChip(_p2) {
+    var x = _p2.x;
+    var e = estadoMesItem(x);
+    var pag = montoEstadoMes(x, ["Pagado"]);
+    var pen = montoEstadoMes(x, ["Pendiente", "Mora"]);
+    var cfg = e === "pagado" ? [GREEN, "Pagado " + fmt(pag)] : e === "pendiente" ? [AMBER, "Pendiente " + fmt(pen)] : [SLATE, "Sin registro"];
+    return elR("span", {
+      style: {
+        fontSize: 11, padding: "2px 8px", borderRadius: 6,
+        background: cfg[0] + "18", color: cfg[0], whiteSpace: "nowrap"
+      }
+    }, cfg[1]);
+  }
+
   function ItemCard(_ref46) {
     var x = _ref46.x,
       onDel = _ref46.onDel,
@@ -4764,7 +5004,9 @@ function ModRecurrentes(_ref45) {
         fontSize: 11,
         color: SLATE
       }
-    }, "\u2248 ", fmt(montoMensual(x)), "/mes")), /*#__PURE__*/React.createElement(Badge, {
+    }, "\u2248 ", fmt(montoMensual(x)), "/mes")), /*#__PURE__*/React.createElement(EstadoMesChip, {
+      x: x
+    }), /*#__PURE__*/React.createElement(Badge, {
       estado: x.estado || "Activo"
     }), /*#__PURE__*/React.createElement("button", {
       onClick: function onClick(e) {
@@ -4809,26 +5051,74 @@ function ModRecurrentes(_ref45) {
       setModal(true);
     },
     style: cs.btnP
-  }, "+ Agregar")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginBottom: "1rem",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement(Metric, {
-    label: "Total recurrentes/mes",
-    val: fmt(totalBase + totalCli),
-    color: RED
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Base (productos)",
-    val: fmt(totalBase),
-    color: PURPLE
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Por cliente",
-    val: fmt(totalCli),
-    color: AMBER
-  })), /*#__PURE__*/React.createElement(Tabs, {
+  }, "+ Agregar")), elR("div", {
+    style: { display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }
+  },
+    elR(Metric, {
+      label: "Comprometido/mes",
+      val: fmt(comprometido),
+      color: RED,
+      sub: "Base " + fmt(totalBase) + " \u00B7 Cliente " + fmt(totalCli)
+    }),
+    elR(Metric, {
+      label: "Pagado " + mesLabel(fMesRec),
+      val: fmt(pagadoMes),
+      color: GREEN,
+      sub: conRegistro + " de " + activosRec.length + " activos con registro"
+    }),
+    elR(Metric, {
+      label: "Pendiente " + mesLabel(fMesRec),
+      val: fmt(pendienteMes),
+      color: AMBER,
+      sub: pendienteMes > 0 ? "Pagos en Pendiente o Mora" : "Sin pendientes registrados"
+    }),
+    elR(Metric, {
+      label: "Sin registro",
+      val: String(sinRegistro),
+      color: sinRegistro > 0 ? AMBER : GREEN,
+      sub: "Recurrentes activos sin pago del mes"
+    }),
+    elR(Metric, {
+      label: "Brecha vs comprometido",
+      val: fmt(brecha),
+      color: Math.abs(brecha) < 0.01 ? GREEN : RED,
+      sub: "Comprometido \u2212 pagado en el mes"
+    })
+  ), listaMesesRec.length > 0 && elR("div", {
+    style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }
+  }, listaMesesRec.slice(0, 12).map(function (m) {
+    return elR(ChipMesRec, { key: m, m: m });
+  })), elR("div", {
+    style: _objectSpread(_objectSpread({}, cs.card), {}, { display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", padding: "10px 14px" })
+  },
+    elR("div", null,
+      elR("span", { style: cs.lbl }, "Mes"),
+      elR("select", {
+        style: selStyleR,
+        value: fMesRec,
+        onChange: function (e) { setFMesRec(e.target.value); }
+      }, listaMesesRec.map(function (m) {
+        return elR("option", { key: m, value: m }, mesLabel(m));
+      }))
+    ),
+    elR("div", null,
+      elR("span", { style: cs.lbl }, "Estado en el mes"),
+      elR("select", {
+        style: selStyleR,
+        value: fEstMes,
+        onChange: function (e) { setFEstMes(e.target.value); }
+      },
+        elR("option", { value: "" }, "Todos"),
+        elR("option", { value: "pagado" }, "Pagado"),
+        elR("option", { value: "pendiente" }, "Pendiente / Mora"),
+        elR("option", { value: "sin" }, "Sin registro")
+      )
+    ),
+    elR("button", {
+      onClick: function () { setFMesRec(mesRecVigente(data)); setFEstMes(""); },
+      style: _objectSpread(_objectSpread({}, cs.btnX), {}, { padding: "6px 12px", marginBottom: 4 })
+    }, "Limpiar filtros")
+  ), /*#__PURE__*/React.createElement(Tabs, {
     tabs: [{
       id: "base",
       label: "Por Producto (base)"
@@ -4838,26 +5128,26 @@ function ModRecurrentes(_ref45) {
     }],
     active: tab,
     onChange: setTab
-  }), tab === "base" && (base.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }), tab === "base" && (baseF.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: _objectSpread(_objectSpread({}, cs.card), {}, {
       textAlign: "center",
       padding: "2rem",
       color: SLATE
     })
-  }, "Sin costos base.") : base.map(function (x) {
+  }, base.length === 0 ? "Sin costos base." : "Ning\u00FAn costo base coincide con el filtro.") : baseF.map(function (x) {
     return /*#__PURE__*/React.createElement(ItemCard, {
       key: x.id,
       x: x,
       onDel: delBase,
       extra: null
     });
-  })), tab === "cliente" && (porCliente.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  })), tab === "cliente" && (cliF.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: _objectSpread(_objectSpread({}, cs.card), {}, {
       textAlign: "center",
       padding: "2rem",
       color: SLATE
     })
-  }, "Sin costos por cliente.") : porCliente.map(function (x) {
+  }, porCliente.length === 0 ? "Sin costos por cliente." : "Ning\u00FAn costo por cliente coincide con el filtro.") : cliF.map(function (x) {
     var _clientes$find7;
     var cn = (_clientes$find7 = clientes.find(function (cl) {
       return cl.id === x.clienteId;
@@ -4928,177 +5218,427 @@ function ModRecurrentes(_ref45) {
 
 // ── MOD GASTOS ────────────────────────────────────────────
 function ModGastos(_ref49) {
+  var el = React.createElement;
   var data = _ref49.data,
     setData = _ref49.setData;
-  var _useState87 = useState(false),
-    _useState88 = _slicedToArray(_useState87, 2),
-    modal = _useState88[0],
-    setModal = _useState88[1];
-  var _useState89 = useState({}),
-    _useState90 = _slicedToArray(_useState89, 2),
-    gf = _useState90[0],
-    setGf = _useState90[1];
+  var gastos = data.gastos || [];
+
+  var _mgA = useState(false), modal = _mgA[0], setModal = _mgA[1];
+  var _mgB = useState({}), gf = _mgB[0], setGf = _mgB[1];
+  var _mgC = useState(function () { return mesGastosVigente(gastos); }), fMes = _mgC[0], setFMes = _mgC[1];
+  var _mgD = useState(""), fCat = _mgD[0], setFCat = _mgD[1];
+  var _mgE = useState(""), fProd = _mgE[0], setFProd = _mgE[1];
+  var _mgF = useState(""), fQuien = _mgF[0], setFQuien = _mgF[1];
+  var _mgG = useState(false), agrupar = _mgG[0], setAgrupar = _mgG[1];
+  var _mgH = useState(""), fEst = _mgH[0], setFEst = _mgH[1];
+
   var gset = function gset(k, v) {
-    return setGf(function (f) {
-      return _objectSpread(_objectSpread({}, f), {}, _defineProperty({}, k, v));
+    setGf(function (f) {
+      var n = Object.assign({}, f);
+      n[k] = v;
+      return n;
     });
   };
-  var gastos = data.gastos || [];
-  var total = gastos.reduce(function (s, g) {
-    return s + (g.monto || 0);
-  }, 0);
+
   function saveG() {
     if (!gf.monto) return;
-    var entry = _objectSpread(_objectSpread({}, gf), {}, {
-      concepto: gf.concepto || gf.producto || gf.categoria || "Gasto",
-      id: gf.id || uid()
-    });
-    var ex = gastos.find(function (g) {
-      return g.id === entry.id;
-    });
-    var up = ex ? gastos.map(function (g) {
-      return g.id === entry.id ? entry : g;
-    }) : [].concat(_toConsumableArray(gastos), [entry]);
+    var entry = Object.assign({}, gf);
+    entry.concepto = gf.concepto || gf.producto || gf.categoria || "Gasto";
+    entry.id = gf.id || uid();
+    if (!entry.mesPeriodo) {
+      entry.mesPeriodo = entry.fecha ? String(entry.fecha).slice(0, 7) : mesActualKey();
+    }
+    if (!entry.estado) entry.estado = "Pagado";
+    delete entry._mesManual;
+    var ex = gastos.find(function (g) { return g.id === entry.id; });
+    var up = ex ? gastos.map(function (g) { return g.id === entry.id ? entry : g; }) : gastos.concat([entry]);
     setData(function (d) {
-      return _objectSpread(_objectSpread({}, d), {}, {
-        gastos: up
-      });
+      return Object.assign({}, d, { gastos: up });
     });
+    if (fMes !== "__all__") setFMes(mesDeGasto(entry));
     setModal(false);
     setGf({});
   }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: "1rem"
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      margin: 0,
-      fontSize: 16,
-      fontWeight: 700,
-      color: NAVY,
-      fontFamily: "Poppins,sans-serif"
-    }
-  }, "Gastos Corporativos"), /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      setGf({
-        id: uid(),
-        categoria: CATS_CORP[0]
+
+  function marcarPagado(g) {
+    var hoy = new Date().toISOString().slice(0, 10);
+    var up = gastos.map(function (x) {
+      if (x.id !== g.id) return x;
+      var n = Object.assign({}, x, { estado: "Pagado" });
+      if (!n.fecha) n.fecha = hoy;
+      return n;
+    });
+    setData(function (d) { return Object.assign({}, d, { gastos: up }); });
+  }
+
+  function delG(id) {
+    setData(function (d) {
+      return Object.assign({}, d, {
+        gastos: (d.gastos || []).filter(function (x) { return x.id !== id; })
       });
-      setModal(true);
+    });
+  }
+
+  // ── Datos derivados ──
+  var listaMeses = mesesDisponibles(gastos);
+  var todos = fMes === "__all__";
+
+  var filtrados = gastos.filter(function (g) {
+    if (!todos && mesDeGasto(g) !== fMes) return false;
+    if (fCat && (g.categoria || "") !== fCat) return false;
+    if (fProd && (g.producto || "") !== fProd) return false;
+    if (fQuien && (g.quien || "") !== fQuien) return false;
+    if (fEst && (g.estado || "Pagado") !== fEst) return false;
+    return true;
+  });
+
+  var ordenados = filtrados.slice().sort(function (a, b) {
+    var ka = mesDeGasto(a), kb = mesDeGasto(b);
+    if (ka !== kb) return ka < kb ? 1 : -1;
+    return (a.fecha || "") < (b.fecha || "") ? 1 : -1;
+  });
+
+  var sum = function sum(arr) {
+    return arr.reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+  };
+
+  var vigentes = function vigentes(arr) { return arr.filter(gastoVigente); };
+  var totalHistorico = sum(vigentes(gastos));
+  var totalFiltrado = sum(vigentes(filtrados));
+  var pagadoSel = todos
+    ? sum(gastos.filter(function (g) { return gastoVigente(g) && (g.estado || "Pagado") === "Pagado"; }))
+    : totalMesEstado(gastos, fMes, ["Pagado"]);
+  var pendienteSel = todos
+    ? sum(gastos.filter(function (g) { return gastoVigente(g) && ["Pendiente", "Mora"].indexOf(g.estado || "Pagado") >= 0; }))
+    : totalMesEstado(gastos, fMes, ["Pendiente", "Mora"]);
+  var totalSel = todos ? totalHistorico : totalMes(gastos, fMes);
+  var pctPagado = totalSel > 0 ? pagadoSel / totalSel * 100 : 0;
+  var canceladosSel = filtrados.filter(function (g) { return g.estado === "Cancelado"; }).length;
+  var mesAnt = todos ? "" : mesPrevio(fMes);
+  var totalAnt = mesAnt ? totalMes(gastos, mesAnt) : 0;
+  var delta = totalSel - totalAnt;
+  var deltaPct = totalAnt > 0 ? delta / totalAnt * 100 : null;
+  var promedio = listaMeses.length ? totalHistorico / listaMeses.length : 0;
+
+  // Subtotales por mes (sobre el conjunto filtrado, para la vista agrupada)
+  var subtotalMes = {};
+  vigentes(filtrados).forEach(function (g) {
+    var k = mesDeGasto(g) || "";
+    subtotalMes[k] = (subtotalMes[k] || 0) + (g.monto || 0);
+  });
+
+  // Desglose por categoría
+  var porCat = {};
+  vigentes(filtrados).forEach(function (g) {
+    var c = g.categoria || "Otro";
+    porCat[c] = (porCat[c] || 0) + (g.monto || 0);
+  });
+  var catsArr = Object.keys(porCat).map(function (c) {
+    return { cat: c, monto: porCat[c] };
+  }).sort(function (a, b) { return b.monto - a.monto; });
+  var maxCat = catsArr.length ? catsArr[0].monto : 0;
+
+  // Opciones de filtro
+  var uniq = function uniq(key) {
+    var s = {};
+    gastos.forEach(function (g) { if (g[key]) s[g[key]] = 1; });
+    return Object.keys(s).sort();
+  };
+  var prodsFiltro = uniq("producto");
+  var quienesFiltro = uniq("quien");
+  var hayFiltroExtra = !!(fCat || fProd || fQuien || fEst);
+
+  var selStyle = Object.assign({}, cs.inp, { width: "auto", minWidth: 120, padding: "5px 8px", fontSize: 12 });
+
+  // ── Render ──
+  return el("div", null,
+    el("div", {
+      style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }
     },
-    style: cs.btnP
-  }, "+ Registrar gasto")), /*#__PURE__*/React.createElement(Metric, {
-    label: "Total gastos",
-    val: fmt(total),
-    color: RED
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 12
-    }
-  }, gastos.length === 0 && /*#__PURE__*/React.createElement("div", {
-    style: _objectSpread(_objectSpread({}, cs.card), {}, {
-      textAlign: "center",
-      padding: "2rem",
-      color: SLATE
-    })
-  }, "Sin gastos corporativos."), gastos.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      overflowX: "auto"
-    }
-  }, /*#__PURE__*/React.createElement("table", {
-    style: {
-      width: "100%",
-      borderCollapse: "collapse",
-      background: "#fff",
-      borderRadius: 12
-    }
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, ["Concepto", "Categoría", "Producto", "Monto", "Fecha", "Quién pagó", "Método", "Referencia", ""].map(function (h) {
-    return /*#__PURE__*/React.createElement("th", {
-      key: h,
-      style: cs.th
-    }, h);
-  }))), /*#__PURE__*/React.createElement("tbody", null, gastos.map(function (g) {
-    return /*#__PURE__*/React.createElement("tr", {
-      key: g.id
-    }, /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.concepto), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 11,
-        padding: "2px 7px",
-        borderRadius: 6,
-        background: CLOUD,
-        color: SLATE
-      }
-    }, g.categoria)), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.producto ? /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 11,
-        padding: "2px 7px",
-        borderRadius: 6,
-        background: PURPLE + "18",
-        color: PURPLE
-      }
-    }, g.producto) : "—"), /*#__PURE__*/React.createElement("td", {
-      style: _objectSpread(_objectSpread({}, cs.td), {}, {
-        fontWeight: 600,
-        color: RED
+      el("h2", {
+        style: { margin: 0, fontSize: 16, fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" }
+      }, "Gastos Corporativos"),
+      el("button", {
+        onClick: function () {
+          setGf({ id: uid(), categoria: CATS_CORP[0], mesPeriodo: "", recurrencia: "Mensual", estado: "Pagado" });
+          setModal(true);
+        },
+        style: cs.btnP
+      }, "+ Registrar gasto")
+    ),
+
+    // ── Tarjetas KPI ──
+    el("div", {
+      style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }
+    },
+      el(Metric, {
+        label: todos ? "Total (todos los meses)" : "Total " + mesLabel(fMes),
+        val: fmt(totalSel),
+        color: RED,
+        sub: "Pagado " + fmt(pagadoSel) + " · Pendiente " + fmt(pendienteSel)
+      }),
+      el(Metric, {
+        label: "Pendiente por pagar",
+        val: fmt(pendienteSel),
+        color: pendienteSel > 0 ? AMBER : GREEN,
+        sub: pendienteSel > 0 ? pctPagado.toFixed(0) + "% del período ya pagado" : "Todo al día"
+      }),
+      el(Metric, {
+        label: "vs. mes anterior",
+        val: todos ? "—" : (delta >= 0 ? "+" : "−") + fmt(Math.abs(delta)),
+        color: todos ? SLATE : (delta > 0 ? RED : GREEN),
+        sub: todos ? "Selecciona un mes" : mesAnt ? mesLabel(mesAnt) + ": " + fmt(totalAnt) + (deltaPct !== null ? " (" + (delta >= 0 ? "+" : "") + deltaPct.toFixed(1) + "%)" : "") : "Sin mes previo"
+      }),
+      el(Metric, {
+        label: "Promedio mensual",
+        val: fmt(promedio),
+        color: PURPLE,
+        sub: "Histórico ÷ " + (listaMeses.length || 1) + " meses"
+      }),
+      el(Metric, {
+        label: "Total acumulado",
+        val: fmt(totalHistorico),
+        color: SLATE,
+        sub: "Histórico completo"
       })
-    }, fmt(g.monto)), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.fecha), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.quien), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.metodo), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, g.referencia), /*#__PURE__*/React.createElement("td", {
-      style: cs.td
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: 4
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: function onClick() {
-        setGf(_objectSpread({}, g));
-        setModal(true);
+    ),
+
+    // ── Chips por mes ──
+    listaMeses.length > 0 && el("div", {
+      style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }
+    },
+      el("button", {
+        onClick: function () { setFMes("__all__"); },
+        style: {
+          cursor: "pointer", borderRadius: 10, padding: "8px 12px", textAlign: "left",
+          border: "1px solid " + (todos ? MAGENTA : "rgba(13,27,42,0.1)"),
+          background: todos ? MAGENTA + "12" : "#fff",
+          fontFamily: "Inter,sans-serif"
+        }
       },
-      style: cs.btnX
-    }, "Editar"), /*#__PURE__*/React.createElement("button", {
-      onClick: function onClick() {
-        return setData(function (d) {
-          return _objectSpread(_objectSpread({}, d), {}, {
-            gastos: d.gastos.filter(function (x) {
-              return x.id !== g.id;
-            })
-          });
-        });
-      },
-      style: _objectSpread(_objectSpread({}, cs.btnX), {}, {
-        color: RED
+        el("div", { style: { fontSize: 11, color: SLATE } }, "Todos"),
+        el("div", { style: { fontSize: 14, fontWeight: 700, color: todos ? MAGENTA : NAVY, fontFamily: "Poppins,sans-serif" } }, fmt(totalHistorico))
+      ),
+      listaMeses.map(function (m) {
+        var act = !todos && fMes === m;
+        var tot = totalMes(gastos, m);
+        var cnt = gastos.filter(function (g) { return mesDeGasto(g) === m; }).length;
+        return el("button", {
+          key: m,
+          onClick: function () { setFMes(m); },
+          style: {
+            cursor: "pointer", borderRadius: 10, padding: "8px 12px", textAlign: "left",
+            border: "1px solid " + (act ? MAGENTA : "rgba(13,27,42,0.1)"),
+            background: act ? MAGENTA + "12" : "#fff",
+            fontFamily: "Inter,sans-serif"
+          }
+        },
+          el("div", { style: { fontSize: 11, color: SLATE } }, mesLabel(m) + " · " + cnt),
+          el("div", { style: { fontSize: 14, fontWeight: 700, color: act ? MAGENTA : NAVY, fontFamily: "Poppins,sans-serif" } }, fmt(tot))
+        );
       })
-    }, "\xD7"))));
-  }))))), modal && /*#__PURE__*/React.createElement(Modal, {
-    title: gf.concepto ? "Editar gasto" : "Registrar gasto",
-    onClose: function onClose() {
-      return setModal(false);
-    }
-  }, /*#__PURE__*/React.createElement(GastoCorporativoForm, {
-    form: gf,
-    set: gset,
-    onSave: saveG,
-    onCancel: function onCancel() {
-      return setModal(false);
-    }
-  })));
+    ),
+
+    // ── Barra de filtros ──
+    el("div", {
+      style: Object.assign({}, cs.card, { display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", padding: "10px 14px" })
+    },
+      el("div", null,
+        el("span", { style: cs.lbl }, "Mes"),
+        el("select", {
+          style: selStyle,
+          value: fMes,
+          onChange: function (e) { setFMes(e.target.value); }
+        },
+          el("option", { value: "__all__" }, "Todos los meses"),
+          listaMeses.map(function (m) { return el("option", { key: m, value: m }, mesLabel(m)); })
+        )
+      ),
+      el("div", null,
+        el("span", { style: cs.lbl }, "Categoría"),
+        el("select", {
+          style: selStyle,
+          value: fCat,
+          onChange: function (e) { setFCat(e.target.value); }
+        },
+          el("option", { value: "" }, "Todas"),
+          CATS_CORP.map(function (c) { return el("option", { key: c, value: c }, c); })
+        )
+      ),
+      el("div", null,
+        el("span", { style: cs.lbl }, "Producto"),
+        el("select", {
+          style: selStyle,
+          value: fProd,
+          onChange: function (e) { setFProd(e.target.value); }
+        },
+          el("option", { value: "" }, "Todos"),
+          prodsFiltro.map(function (p) { return el("option", { key: p, value: p }, p); })
+        )
+      ),
+      el("div", null,
+        el("span", { style: cs.lbl }, "Estado"),
+        el("select", {
+          style: selStyle,
+          value: fEst,
+          onChange: function (e) { setFEst(e.target.value); }
+        },
+          el("option", { value: "" }, "Todos"),
+          ESTADOS_GASTO.map(function (es) { return el("option", { key: es, value: es }, es); })
+        )
+      ),
+      el("div", null,
+        el("span", { style: cs.lbl }, "Quién pagó"),
+        el("select", {
+          style: selStyle,
+          value: fQuien,
+          onChange: function (e) { setFQuien(e.target.value); }
+        },
+          el("option", { value: "" }, "Todos"),
+          quienesFiltro.map(function (q) { return el("option", { key: q, value: q }, q); })
+        )
+      ),
+      el("label", {
+        style: { display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: SLATE, cursor: "pointer", paddingBottom: 6 }
+      },
+        el("input", {
+          type: "checkbox",
+          checked: agrupar,
+          onChange: function (e) { setAgrupar(e.target.checked); }
+        }),
+        "Agrupar por mes"
+      ),
+      el("button", {
+        onClick: function () { setFMes(mesGastosVigente(gastos)); setFCat(""); setFProd(""); setFQuien(""); setFEst(""); },
+        style: Object.assign({}, cs.btnX, { padding: "6px 12px", marginBottom: 4 })
+      }, "Limpiar filtros")
+    ),
+
+    // ── Desglose por categoría ──
+    catsArr.length > 0 && el("div", { style: Object.assign({}, cs.card, { padding: "12px 14px" }) },
+      el("div", { style: { fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 8, fontFamily: "Poppins,sans-serif" } },
+        "Desglose por categoría · " + (todos ? "todos los meses" : mesLabel(fMes))),
+      catsArr.map(function (c) {
+        var pct = maxCat > 0 ? c.monto / maxCat * 100 : 0;
+        var pctTot = totalFiltrado > 0 ? c.monto / totalFiltrado * 100 : 0;
+        return el("div", { key: c.cat, style: { marginBottom: 6 } },
+          el("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, color: SLATE, marginBottom: 2 } },
+            el("span", null, c.cat),
+            el("span", { style: { color: NAVY, fontWeight: 600 } }, fmt(c.monto) + " · " + pctTot.toFixed(0) + "%")
+          ),
+          el("div", { style: { height: 6, background: CLOUD, borderRadius: 4, overflow: "hidden" } },
+            el("div", { style: { width: pct + "%", height: "100%", background: MAGENTA, borderRadius: 4 } })
+          )
+        );
+      })
+    ),
+
+    // ── Tabla ──
+    el("div", { style: { marginTop: 12 } },
+      ordenados.length === 0 && el("div", {
+        style: Object.assign({}, cs.card, { textAlign: "center", padding: "2rem", color: SLATE })
+      }, gastos.length === 0 ? "Sin gastos corporativos." : "Sin gastos que coincidan con los filtros."),
+      ordenados.length > 0 && el("div", { style: { overflowX: "auto" } },
+        el("table", { style: { width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: 12 } },
+          el("thead", null,
+            el("tr", null,
+              ["Mes", "Concepto", "Estado", "Categoría", "Producto", "Monto", "Fecha pago", "Periodicidad", "Quién pagó", "Método", "Referencia", ""].map(function (h) {
+                return el("th", { key: h, style: cs.th }, h);
+              })
+            )
+          ),
+          el("tbody", null, (function () {
+            var filas = [];
+            var mesPrev = null;
+            ordenados.forEach(function (g) {
+              var mk = mesDeGasto(g);
+              if (agrupar && mk !== mesPrev) {
+                mesPrev = mk;
+                filas.push(el("tr", { key: "hdr-" + (mk || "sin") },
+                  el("td", {
+                    colSpan: 12,
+                    style: {
+                      padding: "6px 10px", fontSize: 12, fontWeight: 700, color: NAVY,
+                      background: CLOUD, fontFamily: "Poppins,sans-serif"
+                    }
+                  }, mesLabel(mk) + " — subtotal " + fmt(subtotalMes[mk] || 0))
+                ));
+              }
+              filas.push(el("tr", { key: g.id },
+                el("td", { style: cs.td },
+                  el("span", {
+                    style: { fontSize: 11, padding: "2px 7px", borderRadius: 6, background: NAVY + "12", color: NAVY, whiteSpace: "nowrap" }
+                  }, mesLabel(mk))
+                ),
+                el("td", { style: cs.td }, g.concepto),
+                el("td", { style: cs.td }, el(Badge, { estado: g.estado || "Pagado" })),
+                el("td", { style: cs.td },
+                  el("span", { style: { fontSize: 11, padding: "2px 7px", borderRadius: 6, background: CLOUD, color: SLATE } }, g.categoria)
+                ),
+                el("td", { style: cs.td }, g.producto
+                  ? el("span", { style: { fontSize: 11, padding: "2px 7px", borderRadius: 6, background: PURPLE + "18", color: PURPLE } }, g.producto)
+                  : "—"),
+                el("td", {
+                  style: Object.assign({}, cs.td, {
+                    fontWeight: 600,
+                    color: g.estado === "Cancelado" ? SLATE : g.estado === "Pagado" || !g.estado ? RED : AMBER,
+                    textDecoration: g.estado === "Cancelado" ? "line-through" : "none"
+                  })
+                }, fmt(g.monto)),
+                el("td", { style: cs.td }, g.fecha || "—"),
+                el("td", { style: cs.td }, g.recurrencia
+                  ? el("span", { style: { fontSize: 11, padding: "2px 7px", borderRadius: 6, background: AMBER + "18", color: AMBER } }, g.recurrencia)
+                  : "—"),
+                el("td", { style: cs.td }, g.quien),
+                el("td", { style: cs.td }, g.metodo),
+                el("td", { style: cs.td }, g.referencia),
+                el("td", { style: cs.td },
+                  el("div", { style: { display: "flex", gap: 4 } },
+                    (g.estado === "Pendiente" || g.estado === "Mora") && el("button", {
+                      onClick: function () { marcarPagado(g); },
+                      style: Object.assign({}, cs.btnX, { color: GREEN, borderColor: GREEN + "66" }),
+                      title: "Marcar como pagado"
+                    }, "✓ Pagar"),
+                    el("button", {
+                      onClick: function () { setGf(Object.assign({}, g)); setModal(true); },
+                      style: cs.btnX
+                    }, "Editar"),
+                    el("button", {
+                      onClick: function () { delG(g.id); },
+                      style: Object.assign({}, cs.btnX, { color: RED })
+                    }, "\xD7")
+                  )
+                )
+              ));
+            });
+            if (ordenados.length > 0) {
+              filas.push(el("tr", { key: "tot-final" },
+                el("td", {
+                  colSpan: 5,
+                  style: { padding: "8px 10px", fontSize: 12, fontWeight: 700, color: NAVY, background: CLOUD, textAlign: "right" }
+                }, "Total mostrado" + (canceladosSel > 0 ? " (excl. " + canceladosSel + " cancelado" + (canceladosSel > 1 ? "s" : "") + ")" : "")),
+                el("td", {
+                  style: { padding: "8px 10px", fontSize: 13, fontWeight: 700, color: RED, background: CLOUD }
+                }, fmt(totalFiltrado)),
+                el("td", { colSpan: 6, style: { background: CLOUD } })
+              ));
+            }
+            return filas;
+          })())
+        )
+      )
+    ),
+
+    modal && el(Modal, {
+      title: gf.concepto ? "Editar gasto" : "Registrar gasto",
+      onClose: function () { setModal(false); }
+    }, el(GastoCorporativoForm, {
+      form: gf,
+      set: gset,
+      onSave: saveG,
+      onCancel: function () { setModal(false); }
+    }))
+  );
 }
 
 // ── MOD COBRAR (rediseñado: solo facturas) ────────────────
@@ -5383,7 +5923,9 @@ function ModSocios(_ref51) {
       frecuencia: x.frecuencia
     });
   }, 0);
-  var gastosCorp = (data.gastos || []).reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+  var mesVigenteG = mesGastosVigente(data.gastos || []);
+  var gastosCorp = totalMes(data.gastos || [], mesVigenteG);
+  var gastosCorpPend = totalMesEstado(data.gastos || [], mesVigenteG, ["Pendiente", "Mora"]);
   var recBase = ((data.recurrentes || {}).base || []).filter(function (x) { return x.estado === "Activo"; }).reduce(function (s, x) { return s + montoMensual(x); }, 0);
   var recCli = ((data.recurrentes || {}).porCliente || []).filter(function (x) { return x.estado === "Activo"; }).reduce(function (s, x) { return s + montoMensual(x); }, 0);
   var baseNeta = Math.max(0, mrr - gastosCorp - recBase - recCli);
@@ -5417,7 +5959,7 @@ function ModSocios(_ref51) {
       color: SLATE,
       marginBottom: "1rem"
     }
-  }, "Capital Operativo 30% \xB7 Repago inversi\xF3n 20% \xB7 Dividendos 50%"), /*#__PURE__*/React.createElement("div", {
+  }, "Capital Operativo 30% \xB7 Repago inversi\xF3n 20% \xB7 Dividendos 50% \xB7 Base neta con gastos corp. de " + mesLabel(mesVigenteG) + " (" + fmt(gastosCorp) + (gastosCorpPend > 0 ? ", incl. " + fmt(gastosCorpPend) + " por pagar" : "") + ")"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr 1fr",
@@ -5637,7 +6179,10 @@ function ModDashboard(_ref52) {
   }).reduce(function (s, f) {
     return s + (f.monto || 0);
   }, 0);
-  var gastosCorp = (data.gastos || []).reduce(function (s, g) {
+  var mesVigenteG = mesGastosVigente(data.gastos || []);
+  var gastosCorp = totalMes(data.gastos || [], mesVigenteG);
+  var gastosCorpPend = totalMesEstado(data.gastos || [], mesVigenteG, ["Pendiente", "Mora"]);
+  var gastosCorpHist = (data.gastos || []).filter(gastoVigente).reduce(function (s, g) {
     return s + (g.monto || 0);
   }, 0);
   var recBase = ((data.recurrentes || {}).base || []).filter(function (x) {
@@ -5757,9 +6302,10 @@ function ModDashboard(_ref52) {
     val: fmt(porCobrar),
     color: AMBER
   }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Gastos corp.",
+    label: "Gastos corp./mes",
     val: fmt(gastosCorp),
-    color: RED
+    color: RED,
+    sub: mesLabel(mesVigenteG) + (gastosCorpPend > 0 ? " \xB7 incl. " + fmt(gastosCorpPend) + " pendiente" : " \xB7 todo pagado")
   }), /*#__PURE__*/React.createElement(Metric, {
     label: "Recurrentes/mes",
     val: fmt(totalRec),
@@ -5774,7 +6320,8 @@ function ModDashboard(_ref52) {
   }, /*#__PURE__*/React.createElement(Metric, {
     label: "Margen operativo est.",
     val: fmt(margen),
-    color: margen >= 0 ? GREEN : RED
+    color: margen >= 0 ? GREEN : RED,
+    sub: "MRR \u2212 gastos " + mesLabel(mesVigenteG) + " \u2212 recurrentes"
   }), /*#__PURE__*/React.createElement(Metric, {
     label: "Clientes activos",
     val: clientes.filter(function (c) {
