@@ -615,6 +615,20 @@ var cs = {
     display: "block"
   }
 };
+function SecTitle(_refST) {
+  var t = _refST.t, sb = _refST.s;
+  return React.createElement("div", {
+    style: { margin: "0 0 8px", display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }
+  },
+    React.createElement("span", {
+      style: {
+        fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+        color: NAVY, fontFamily: "Poppins,sans-serif"
+      }
+    }, t),
+    sb && React.createElement("span", { style: { fontSize: 11, color: SLATE } }, sb)
+  );
+}
 function Metric(_ref3) {
   var label = _ref3.label,
     val = _ref3.val,
@@ -2969,9 +2983,20 @@ function ModProyectos(_ref32) {
       val: fmt(cc.costos),
       color: RED
     }), /*#__PURE__*/React.createElement(Metric, {
+      label: "Ganancia est.",
+      val: fmt(cc.contrato - cc.costos),
+      color: cc.contrato - cc.costos >= 0 ? GREEN : RED,
+      sub: "Contrato \u2212 presupuesto"
+    }), /*#__PURE__*/React.createElement(Metric, {
+      label: "Ganancia en caja",
+      val: fmt(cobrado - cc.pagos),
+      color: cobrado - cc.pagos >= 0 ? GREEN : RED,
+      sub: "Cobrado \u2212 pagado"
+    }), /*#__PURE__*/React.createElement(Metric, {
       label: "Rentabilidad",
       val: fmtPct(cc.rent),
-      color: parseFloat(cc.rent) >= 0 ? GREEN : RED
+      color: parseFloat(cc.rent) >= 0 ? GREEN : RED,
+      sub: "Ganancia / presupuesto"
     })), /*#__PURE__*/React.createElement(Tabs, {
       tabs: TABS,
       active: subTab,
@@ -2983,7 +3008,7 @@ function ModProyectos(_ref32) {
         width: "100%",
         borderCollapse: "collapse"
       }
-    }, /*#__PURE__*/React.createElement("tbody", null, [["Cliente", clienteNombre], ["Inicio", sel.fechaInicio || "—"], ["Fin est.", sel.fechaFin || "—"], ["Contrato", fmt(cc.contrato)], ["Presupuesto total", fmt(cc.costos)], ["Total pagado (costos)", fmt(cc.pagos)], ["Diferencia", fmt(cc.costos - cc.pagos)], ["Ganancia estimada", fmt(cc.contrato - cc.costos)], ["Rentabilidad", fmtPct(cc.rent)], ["Cobrado (facturas)", fmt(cobrado)], ["Por cobrar (facturas)", fmt(porCobrar)]].map(function (_ref33) {
+    }, /*#__PURE__*/React.createElement("tbody", null, [["Cliente", clienteNombre], ["Inicio", sel.fechaInicio || "—"], ["Fin est.", sel.fechaFin || "—"], ["Contrato", fmt(cc.contrato)], ["Presupuesto total", fmt(cc.costos)], ["Total pagado (costos)", fmt(cc.pagos)], ["Diferencia", fmt(cc.costos - cc.pagos)], ["Ganancia estimada", fmt(cc.contrato - cc.costos)], ["Rentabilidad", fmtPct(cc.rent)], ["Cobrado (facturas)", fmt(cobrado)], ["Por cobrar (facturas)", fmt(porCobrar)], ["Pendiente de facturar", fmt(Math.max(0, cc.contrato - cobrado - porCobrar))], ["Ganancia en caja (cobrado − pagado)", fmt(cobrado - cc.pagos)]].map(function (_ref33) {
       var _ref34 = _slicedToArray(_ref33, 2),
         l = _ref34[0],
         v = _ref34[1];
@@ -6157,6 +6182,9 @@ function ModSocios(_ref51) {
 // ── MOD DASHBOARD ─────────────────────────────────────────
 function ModDashboard(_ref52) {
   var data = _ref52.data;
+  var elD = React.createElement;
+  var _dsh = useState(function () { return mesGastosVigente(data.gastos || []); }),
+    mesDash = _dsh[0], setMesDash = _dsh[1];
   var mrr = (data.fees || []).filter(function (x) {
     return x.estado === "Activo" && x.frecuencia !== "Pago \u00FAnico";
   }).reduce(function (s, x) {
@@ -6166,9 +6194,14 @@ function ModDashboard(_ref52) {
     });
   }, 0);
   var arr = mrr * 12;
-  var facturado = (data.facturas || []).reduce(function (s, f) {
+  var facturasVig = (data.facturas || []).filter(function (f) {
+    return f.estado !== "Borrador" && f.estado !== "Anulada";
+  });
+  var facturado = facturasVig.reduce(function (s, f) {
     return s + (f.monto || 0);
   }, 0);
+  var borradores = (data.facturas || []).filter(function (f) { return f.estado === "Borrador"; });
+  var montoBorradores = borradores.reduce(function (s, f) { return s + (f.monto || 0); }, 0);
   var cobrado = (data.facturas || []).filter(function (f) {
     return f.estado === "Pagada";
   }).reduce(function (s, f) {
@@ -6179,7 +6212,14 @@ function ModDashboard(_ref52) {
   }).reduce(function (s, f) {
     return s + (f.monto || 0);
   }, 0);
-  var mesVigenteG = mesGastosVigente(data.gastos || []);
+  var mesVigenteG = mesDash;
+  var mesesDash = (function () {
+    var set = {};
+    mesesDisponibles(data.gastos || []).forEach(function (m) { set[m] = 1; });
+    set[mesActualKey()] = 1;
+    set[mesDash] = 1;
+    return Object.keys(set).sort().reverse();
+  })();
   var gastosCorp = totalMes(data.gastos || [], mesVigenteG);
   var gastosCorpPend = totalMesEstado(data.gastos || [], mesVigenteG, ["Pendiente", "Mora"]);
   var gastosCorpHist = (data.gastos || []).filter(gastoVigente).reduce(function (s, g) {
@@ -6197,6 +6237,27 @@ function ModDashboard(_ref52) {
   }, 0);
   var totalRec = recBase + recCli;
   var margen = mrr - gastosCorp - totalRec;
+  var proyActivos = (data.proyectos || []).filter(function (p) { return !p.estado || p.estado === "Activo"; });
+  var pContrato = 0, pPresup = 0, pPagado = 0, pCobrado = 0, pSinFacturar = 0, proySinFact = 0;
+  proyActivos.forEach(function (pr) {
+    var c = calcP(pr);
+    var fv = (data.facturas || []).filter(function (f) {
+      return f.origen === "Proyecto" && f.origenId === pr.id && f.estado !== "Borrador" && f.estado !== "Anulada";
+    });
+    var cob = fv.filter(function (f) { return f.estado === "Pagada"; })
+      .reduce(function (s, f) { return s + (f.monto || 0); }, 0);
+    var pend = fv.filter(function (f) { return f.estado !== "Pagada"; })
+      .reduce(function (s, f) { return s + (f.monto || 0); }, 0);
+    var sinF = Math.max(0, c.contrato - cob - pend);
+    pContrato += c.contrato;
+    pPresup += c.costos;
+    pPagado += c.pagos;
+    pCobrado += cob;
+    pSinFacturar += sinF;
+    if (sinF > 0.01) proySinFact++;
+  });
+  var pGananciaEst = pContrato - pPresup;
+  var pGananciaCaja = pCobrado - pPagado;
   var clientes = data.clientes || [];
   var pendFees = (data.fees || []).flatMap(function (f) {
     return (f.pagos || []).filter(function (p) {
@@ -6216,7 +6277,22 @@ function ModDashboard(_ref52) {
   var factVencidas = (data.facturas || []).filter(function (f) {
     return f.estado === "Vencida";
   });
-  var alertas = [].concat(_toConsumableArray(factVencidas.map(function (f) {
+  var alertasExtra = [];
+  if (montoBorradores > 0) {
+    alertasExtra.push({
+      msg: borradores.length + " factura" + (borradores.length > 1 ? "s" : "") + " en borrador \u2014 no suman al facturado",
+      monto: montoBorradores,
+      color: SLATE
+    });
+  }
+  if (pSinFacturar > 0.01) {
+    alertasExtra.push({
+      msg: "Contrato sin facturar \u00B7 " + proySinFact + " proyecto" + (proySinFact > 1 ? "s" : "") + " activo" + (proySinFact > 1 ? "s" : ""),
+      monto: pSinFacturar,
+      color: AMBER
+    });
+  }
+  var alertas = [].concat(alertasExtra, _toConsumableArray(factVencidas.map(function (f) {
     var _clientes$find1;
     return {
       msg: "Factura vencida \xB7 ".concat(((_clientes$find1 = clientes.find(function (c) {
@@ -6273,74 +6349,162 @@ function ModDashboard(_ref52) {
       fontSize: 12,
       color: "rgba(255,255,255,0.6)"
     }
-  }, "HenkanCX \u2014 Vista gerencial"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginBottom: "1rem",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement(Metric, {
-    label: "MRR activo",
-    val: fmt(mrr),
-    color: MAGENTA,
-    sub: "Ingresos recurrentes/mes"
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "ARR proyectado",
-    val: fmt(arr),
-    color: PURPLE
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Facturado total",
-    val: fmt(facturado),
-    color: NAVY
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Cobrado",
-    val: fmt(cobrado),
-    color: GREEN
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Por cobrar",
-    val: fmt(porCobrar),
-    color: AMBER
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Gastos corp./mes",
-    val: fmt(gastosCorp),
-    color: RED,
-    sub: mesLabel(mesVigenteG) + (gastosCorpPend > 0 ? " \xB7 incl. " + fmt(gastosCorpPend) + " pendiente" : " \xB7 todo pagado")
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Recurrentes/mes",
-    val: fmt(totalRec),
-    color: PURPLE
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginBottom: "1.5rem",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement(Metric, {
-    label: "Margen operativo est.",
-    val: fmt(margen),
-    color: margen >= 0 ? GREEN : RED,
-    sub: "MRR \u2212 gastos " + mesLabel(mesVigenteG) + " \u2212 recurrentes"
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Clientes activos",
-    val: clientes.filter(function (c) {
-      return c.estado === "Activo";
-    }).length,
-    color: NAVY
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Proyectos activos",
-    val: (data.proyectos || []).filter(function (p) {
-      return !p.estado || p.estado === "Activo";
-    }).length,
-    color: PURPLE
-  }), /*#__PURE__*/React.createElement(Metric, {
-    label: "Productos activos",
-    val: (data.productos || []).filter(function (p) {
-      return p.estado === "Activo";
-    }).length,
-    color: MAGENTA
-  })), alertas.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "HenkanCX \u2014 Vista gerencial"))), elD("div", {
+    style: { display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, marginBottom: 10 }
+  },
+    elD("span", { style: { fontSize: 12, color: SLATE } }, "Mes de an\u00E1lisis:"),
+    elD("select", {
+      style: Object.assign({}, cs.inp, { width: "auto", minWidth: 130, padding: "5px 8px", fontSize: 12 }),
+      value: mesDash,
+      onChange: function (e) { setMesDash(e.target.value); }
+    }, mesesDash.map(function (m) {
+      return elD("option", { key: m, value: m }, mesLabel(m));
+    }))
+  ),
+
+  elD(SecTitle, { t: "Este mes \u2014 negocio recurrente", s: mesLabel(mesDash) + " \u00B7 cifras mensuales" }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "MRR activo",
+      val: fmt(mrr),
+      color: MAGENTA,
+      sub: "ARR proyectado " + fmt(arr)
+    }),
+    elD(Metric, {
+      label: "Recurrentes/mes",
+      val: fmt(totalRec),
+      color: PURPLE,
+      sub: mrr > 0 ? (totalRec / mrr * 100).toFixed(0) + "% del MRR" : "Sin MRR activo"
+    }),
+    elD(Metric, {
+      label: "Gastos corp./mes",
+      val: fmt(gastosCorp),
+      color: RED,
+      sub: gastosCorpPend > 0 ? "incl. " + fmt(gastosCorpPend) + " pendiente" : "todo pagado"
+    }),
+    elD(Metric, {
+      label: "Margen neto/mes",
+      val: fmt(margen),
+      color: margen >= 0 ? GREEN : RED,
+      sub: mrr > 0 ? (margen / mrr * 100).toFixed(0) + "% del MRR" : "MRR \u2212 recurrentes \u2212 gastos"
+    })
+  ),
+
+  mrr > 0 && elD("div", { style: Object.assign({}, cs.card, { padding: "12px 14px", marginBottom: 20 }) },
+    elD("div", {
+      style: { fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 8, fontFamily: "Poppins,sans-serif" }
+    }, "\u00BFA d\u00F3nde va tu MRR? \u00B7 base " + fmt(mrr)),
+    elD("div", {
+      style: { display: "flex", height: 22, borderRadius: 6, overflow: "hidden", background: CLOUD }
+    }, [
+      { l: "Recurrentes", v: totalRec, c: PURPLE },
+      { l: "Gastos corp.", v: gastosCorp, c: RED },
+      { l: "Margen", v: Math.max(0, margen), c: GREEN }
+    ].map(function (seg, i) {
+      var pct = mrr > 0 ? seg.v / mrr * 100 : 0;
+      if (pct <= 0) return null;
+      return elD("div", {
+        key: i,
+        title: seg.l + ": " + fmt(seg.v),
+        style: {
+          width: pct + "%", background: seg.c, display: "flex", alignItems: "center",
+          justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 600, whiteSpace: "nowrap"
+        }
+      }, pct >= 8 ? pct.toFixed(0) + "%" : "");
+    })),
+    elD("div", {
+      style: { display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap", fontSize: 11, color: SLATE }
+    }, [
+      { l: "Recurrentes", v: totalRec, c: PURPLE },
+      { l: "Gastos corp.", v: gastosCorp, c: RED },
+      { l: "Margen", v: margen, c: margen >= 0 ? GREEN : RED }
+    ].map(function (seg, i) {
+      return elD("span", { key: i, style: { display: "flex", alignItems: "center", gap: 5 } },
+        elD("span", { style: { width: 9, height: 9, borderRadius: 3, background: seg.c, display: "inline-block" } }),
+        seg.l + " " + fmt(seg.v)
+      );
+    })),
+    margen < 0 && elD("div", {
+      style: { fontSize: 11, color: RED, marginTop: 6 }
+    }, "El costo recurrente supera al MRR de este mes.")
+  ),
+
+  elD(SecTitle, { t: "Acumulado \u2014 hist\u00F3rico", s: "Todas las facturas vigentes desde el inicio" }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Facturado",
+      val: fmt(facturado),
+      color: NAVY,
+      sub: montoBorradores > 0 ? "excl. " + fmt(montoBorradores) + " en borrador" : "Facturas vigentes"
+    }),
+    elD(Metric, {
+      label: "Cobrado",
+      val: fmt(cobrado),
+      color: GREEN,
+      sub: facturado > 0 ? (cobrado / facturado * 100).toFixed(0) + "% del facturado" : "\u2014"
+    }),
+    elD(Metric, {
+      label: "Por cobrar",
+      val: fmt(porCobrar),
+      color: AMBER,
+      sub: "Facturas emitidas sin pagar"
+    }),
+    elD(Metric, {
+      label: "Sin facturar",
+      val: fmt(pSinFacturar),
+      color: pSinFacturar > 0.01 ? AMBER : GREEN,
+      sub: "Contratos de proyectos activos"
+    })
+  ),
+
+  proyActivos.length > 0 && elD(SecTitle, { t: "Proyectos activos", s: proyActivos.length + " proyecto" + (proyActivos.length > 1 ? "s" : "") + " \u00B7 ciclo completo, no mensual" }),
+  proyActivos.length > 0 && elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Contratos",
+      val: fmt(pContrato),
+      color: NAVY,
+      sub: "Valor total contratado"
+    }),
+    elD(Metric, {
+      label: "Presupuesto",
+      val: fmt(pPresup),
+      color: RED,
+      sub: "Pagado " + fmt(pPagado)
+    }),
+    elD(Metric, {
+      label: "Ganancia est.",
+      val: fmt(pGananciaEst),
+      color: pGananciaEst >= 0 ? GREEN : RED,
+      sub: pPresup > 0 ? (pGananciaEst / pPresup * 100).toFixed(1) + "% sobre costo" : "\u2014"
+    }),
+    elD(Metric, {
+      label: "Ganancia en caja",
+      val: fmt(pGananciaCaja),
+      color: pGananciaCaja >= 0 ? GREEN : RED,
+      sub: "Cobrado \u2212 pagado"
+    })
+  ),
+
+  elD(SecTitle, { t: "Cartera", s: "Conteos vigentes" }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: "1.5rem", flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Clientes activos",
+      val: clientes.filter(function (c) { return c.estado === "Activo"; }).length,
+      color: NAVY
+    }),
+    elD(Metric, {
+      label: "Proyectos activos",
+      val: proyActivos.length,
+      color: PURPLE
+    }),
+    elD(Metric, {
+      label: "Productos activos",
+      val: (data.productos || []).filter(function (p) { return p.estado === "Activo"; }).length,
+      color: MAGENTA
+    })
+  ),
+
+  alertas.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: _objectSpread(_objectSpread({}, cs.card), {}, {
       borderLeft: "3px solid ".concat(RED),
       marginBottom: "1.5rem"
