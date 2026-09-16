@@ -526,12 +526,8 @@ var NAV = [{
 }, {
   group: "COSTOS Y GASTOS"
 }, {
-  id: "recurrentes",
-  label: "Recurrentes",
-  icon: "↻"
-}, {
   id: "gastos",
-  label: "Gastos Corp.",
+  label: "Gastos Generales",
   icon: "▦"
 }, {
   group: "CONTROL Y CIERRE"
@@ -4738,11 +4734,12 @@ function RecurrenteDetalle(_ref44) {
 function ModRecurrentes(_ref45) {
   var data = _ref45.data,
     setData = _ref45.setData;
-  var _useState75 = useState("base"),
+  var _useState75 = useState("cliente"),
     _useState76 = _slicedToArray(_useState75, 2),
     tab = _useState76[0],
     setTab = _useState76[1];
-  var _useState77 = useState("base"),
+  var _vb = useState(false), verBase = _vb[0], setVerBase = _vb[1];
+  var _useState77 = useState("cliente"),
     _useState78 = _slicedToArray(_useState77, 2),
     mTab = _useState78[0],
     setMTab = _useState78[1];
@@ -5066,7 +5063,7 @@ function ModRecurrentes(_ref45) {
       color: NAVY,
       fontFamily: "Poppins,sans-serif"
     }
-  }, "Costos Recurrentes"), /*#__PURE__*/React.createElement("button", {
+  }, "Costos recurrentes por cliente"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setForm({
         id: uid(),
@@ -5143,7 +5140,32 @@ function ModRecurrentes(_ref45) {
       onClick: function () { setFMesRec(mesRecVigente(data)); setFEstMes(""); },
       style: _objectSpread(_objectSpread({}, cs.btnX), {}, { padding: "6px 12px", marginBottom: 4 })
     }, "Limpiar filtros")
-  ), /*#__PURE__*/React.createElement(Tabs, {
+  ), base.length > 0 && elR("div", {
+    style: _objectSpread(_objectSpread({}, cs.card), {}, {
+      padding: "8px 14px",
+      marginBottom: 10,
+      borderLeft: "3px solid " + AMBER,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+      flexWrap: "wrap"
+    })
+  },
+    elR("span", { style: { fontSize: 12, color: SLATE } },
+      base.length + " costo" + (base.length > 1 ? "s" : "") + " base por producto \u00B7 ",
+      elR("strong", { style: { color: NAVY } }, fmt(totalBase) + "/mes"),
+      " siguen sumando al comprometido y restando al margen."
+    ),
+    elR("button", {
+      onClick: function () {
+        var v = !verBase;
+        setVerBase(v);
+        if (!v && tab === "base") setTab("cliente");
+      },
+      style: _objectSpread({}, cs.btnX)
+    }, verBase ? "Ocultar costos base" : "Ver costos base")
+  ), verBase && /*#__PURE__*/React.createElement(Tabs, {
     tabs: [{
       id: "base",
       label: "Por Producto (base)"
@@ -5153,7 +5175,7 @@ function ModRecurrentes(_ref45) {
     }],
     active: tab,
     onChange: setTab
-  }), tab === "base" && (baseF.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }), verBase && tab === "base" && (baseF.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: _objectSpread(_objectSpread({}, cs.card), {}, {
       textAlign: "center",
       padding: "2rem",
@@ -5382,7 +5404,7 @@ function ModGastos(_ref49) {
     },
       el("h2", {
         style: { margin: 0, fontSize: 16, fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" }
-      }, "Gastos Corporativos"),
+      }, "Registro de gastos"),
       el("button", {
         onClick: function () {
           setGf({ id: uid(), categoria: CATS_CORP[0], mesPeriodo: "", recurrencia: "Mensual", estado: "Pagado" });
@@ -5663,6 +5685,25 @@ function ModGastos(_ref49) {
       onSave: saveG,
       onCancel: function () { setModal(false); }
     }))
+  );
+}
+
+// ── MOD GASTOS GENERALES (contenedor) ────────────────────
+function ModGastosGenerales(_refGG) {
+  var data = _refGG.data, setData = _refGG.setData;
+  var _gg = useState("gastos"), gTab = _gg[0], setGTab = _gg[1];
+  return React.createElement("div", null,
+    React.createElement("h2", {
+      style: { margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" }
+    }, "Gastos Generales"),
+    React.createElement(Tabs, {
+      tabs: [{ id: "gastos", label: "Gastos" }, { id: "recurrentes", label: "Recurrentes" }],
+      active: gTab,
+      onChange: setGTab
+    }),
+    gTab === "gastos"
+      ? React.createElement(ModGastos, { data: data, setData: setData })
+      : React.createElement(ModRecurrentes, { data: data, setData: setData })
   );
 }
 
@@ -6756,10 +6797,7 @@ function App() {
   }), mod === "facturas" && /*#__PURE__*/React.createElement(ModFacturas, {
     data: data,
     setData: setData
-  }), mod === "recurrentes" && /*#__PURE__*/React.createElement(ModRecurrentes, {
-    data: data,
-    setData: setData
-  }), mod === "gastos" && /*#__PURE__*/React.createElement(ModGastos, {
+  }), (mod === "gastos" || mod === "recurrentes") && /*#__PURE__*/React.createElement(ModGastosGenerales, {
     data: data,
     setData: setData
   }), mod === "cobrar" && /*#__PURE__*/React.createElement(ModCobrar, {
