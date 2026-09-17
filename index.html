@@ -5603,6 +5603,7 @@ function ModGastos(_ref49) {
   var _mgF = useState(""), fQuien = _mgF[0], setFQuien = _mgF[1];
   var _mgG = useState(false), agrupar = _mgG[0], setAgrupar = _mgG[1];
   var _mgH = useState(""), fEst = _mgH[0], setFEst = _mgH[1];
+  var _mgI = useState(null), aviso = _mgI[0], setAviso = _mgI[1];
 
   var gset = function gset(k, v) {
     setGf(function (f) {
@@ -5632,6 +5633,67 @@ function ModGastos(_ref49) {
     setGf({});
   }
 
+  function fechaMasUnMes(f) {
+    if (!f) return "";
+    var pp = String(f).split("-");
+    var y = parseInt(pp[0], 10), m = parseInt(pp[1], 10), d = parseInt(pp[2], 10);
+    m += 1;
+    if (m > 12) { m = 1; y += 1; }
+    var ultimo = new Date(y, m, 0).getDate();
+    if (d > ultimo) d = ultimo;
+    return y + "-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d;
+  }
+
+  function duplicarGasto(g) {
+    var copia = Object.assign({}, g);
+    copia.id = uid();
+    copia.mesPeriodo = mesSuma(mesDeGasto(g), 1);
+    copia.fecha = fechaMasUnMes(g.fecha);
+    copia.referencia = "";
+    setGf(copia);
+    setModal(true);
+  }
+
+  function duplicarMesAnterior() {
+    if (todos) return;
+    var prev = mesPrevio(fMes);
+    var origen = gastos.filter(function (g) {
+      return gastoVigente(g) && mesDeGasto(g) === prev;
+    });
+    if (!origen.length) {
+      setAviso({ msg: "No hay gastos en " + mesLabel(prev) + " para copiar", color: SLATE });
+      return;
+    }
+    var yaEstan = {};
+    gastos.filter(function (g) { return mesDeGasto(g) === fMes; }).forEach(function (g) {
+      yaEstan[String(g.concepto || "").trim().toLowerCase()] = 1;
+    });
+    var nuevos = origen.filter(function (g) {
+      return !yaEstan[String(g.concepto || "").trim().toLowerCase()];
+    }).map(function (g) {
+      var c = Object.assign({}, g);
+      c.id = uid();
+      c.mesPeriodo = fMes;
+      c.fecha = fechaMasUnMes(g.fecha);
+      c.referencia = "";
+      c.estado = "Pendiente";
+      return c;
+    });
+    var omitidos = origen.length - nuevos.length;
+    if (!nuevos.length) {
+      setAviso({ msg: "Todos los conceptos de " + mesLabel(prev) + " ya existen en " + mesLabel(fMes), color: AMBER });
+      return;
+    }
+    setData(function (d) {
+      return Object.assign({}, d, { gastos: (d.gastos || []).concat(nuevos) });
+    });
+    setAviso({
+      msg: nuevos.length + " gasto" + (nuevos.length > 1 ? "s" : "") + " copiado" + (nuevos.length > 1 ? "s" : "") +
+        " a " + mesLabel(fMes) + " como Pendiente" + (omitidos > 0 ? " \u00B7 " + omitidos + " ya exist\u00EDa(n)" : ""),
+      color: GREEN
+    });
+  }
+
   function marcarPagado(g) {
     var hoy = new Date().toISOString().slice(0, 10);
     var up = gastos.map(function (x) {
@@ -5652,7 +5714,16 @@ function ModGastos(_ref49) {
   }
 
   // ── Datos derivados ──
-  var listaMeses = mesesDisponibles(gastos);
+  var listaMeses = (function () {
+    var conGasto = mesesDisponibles(gastos);
+    var fin = mesSuma(mesActualKey(), 1);
+    var ini = conGasto.length ? conGasto[conGasto.length - 1] : mesActualKey();
+    if (fMes && fMes !== "__all__" && fMes < ini) ini = fMes;
+    if (ini > fin) ini = fin;
+    var out = [], cur = ini, guard = 0;
+    while (cur <= fin && guard < 240) { out.push(cur); cur = mesSuma(cur, 1); guard++; }
+    return out.reverse();
+  })();
   var todos = fMes === "__all__";
 
   var filtrados = gastos.filter(function (g) {
@@ -5730,13 +5801,20 @@ function ModGastos(_ref49) {
       el("h2", {
         style: { margin: 0, fontSize: 16, fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" }
       }, "Registro de gastos"),
-      el("button", {
-        onClick: function () {
-          setGf({ id: uid(), categoria: CATS_CORP[0], mesPeriodo: "", recurrencia: "Mensual", estado: "Pagado" });
-          setModal(true);
-        },
-        style: cs.btnP
-      }, "+ Registrar gasto")
+      el("div", { style: { display: "flex", gap: 6, alignItems: "center" } },
+        !todos && el("button", {
+          onClick: duplicarMesAnterior,
+          style: Object.assign({}, cs.btnX, { padding: "7px 12px" }),
+          title: "Copiar los gastos de " + mesLabel(mesPrevio(fMes)) + " a " + mesLabel(fMes)
+        }, "\u29C9 Duplicar " + mesLabel(mesPrevio(fMes))),
+        el("button", {
+          onClick: function () {
+            setGf({ id: uid(), categoria: CATS_CORP[0], mesPeriodo: "", recurrencia: "Mensual", estado: "Pagado" });
+            setModal(true);
+          },
+          style: cs.btnP
+        }, "+ Registrar gasto")
+      )
     ),
 
     // ── Tarjetas KPI ──
@@ -5791,7 +5869,7 @@ function ModGastos(_ref49) {
         el("div", { style: { fontSize: 11, color: SLATE } }, "Todos"),
         el("div", { style: { fontSize: 14, fontWeight: 700, color: todos ? MAGENTA : NAVY, fontFamily: "Poppins,sans-serif" } }, fmt(totalHistorico))
       ),
-      listaMeses.map(function (m) {
+      listaMeses.slice(0, 12).map(function (m) {
         var act = !todos && fMes === m;
         var tot = totalMes(gastos, m);
         var cnt = gastos.filter(function (g) { return mesDeGasto(g) === m; }).length;
@@ -5972,6 +6050,11 @@ function ModGastos(_ref49) {
                       title: "Marcar como pagado"
                     }, "✓ Pagar"),
                     el("button", {
+                      onClick: function () { duplicarGasto(g); },
+                      style: Object.assign({}, cs.btnX, { color: PURPLE, borderColor: PURPLE + "66" }),
+                      title: "Duplicar al mes siguiente"
+                    }, "\u29C9"),
+                    el("button", {
                       onClick: function () { setGf(Object.assign({}, g)); setModal(true); },
                       style: cs.btnX
                     }, "Editar"),
@@ -6000,6 +6083,12 @@ function ModGastos(_ref49) {
         )
       )
     ),
+
+    aviso && el(Toast, {
+      msg: aviso.msg,
+      color: aviso.color,
+      onDone: function () { setAviso(null); }
+    }),
 
     modal && el(Modal, {
       title: gf.concepto ? "Editar gasto" : "Registrar gasto",
