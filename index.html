@@ -3304,6 +3304,11 @@ function ModProyectos(_ref32) {
       val: fmt(cc.costos),
       color: RED
     }), /*#__PURE__*/React.createElement(Metric, {
+      label: "Pendiente de facturar",
+      val: fmt(Math.max(0, cc.contrato - cobrado - porCobrar)),
+      color: cc.contrato - cobrado - porCobrar > 0.01 ? AMBER : GREEN,
+      sub: cc.contrato - cobrado - porCobrar > 0.01 ? "Contrato a\u00FAn sin factura" : "Contrato facturado al 100%"
+    }), /*#__PURE__*/React.createElement(Metric, {
       label: "Ganancia est.",
       val: fmt(cc.contrato - cc.costos),
       color: cc.contrato - cc.costos >= 0 ? GREEN : RED,
@@ -6762,6 +6767,7 @@ function ModDashboard(_ref52) {
   var pm = function pm(v) { return fmt(v / nMeses) + "/mes"; };
   var proyActivos = (data.proyectos || []).filter(function (p) { return !p.estado || p.estado === "Activo"; });
   var pContrato = 0, pPresup = 0, pPagado = 0, pCobrado = 0, pSinFacturar = 0, proySinFact = 0;
+  var detSinFacturar = [];
   proyActivos.forEach(function (pr) {
     var c = calcP(pr);
     var fv = (data.facturas || []).filter(function (f) {
@@ -6772,6 +6778,9 @@ function ModDashboard(_ref52) {
     var pend = fv.filter(function (f) { return f.estado !== "Pagada"; })
       .reduce(function (s, f) { return s + (f.monto || 0); }, 0);
     var sinF = Math.max(0, c.contrato - cob - pend);
+    if (sinF > 0.01) {
+      detSinFacturar.push({ nombre: pr.nombre || "Proyecto sin nombre", monto: sinF });
+    }
     pContrato += c.contrato;
     pPresup += c.costos;
     pPagado += c.pagos;
@@ -6808,13 +6817,13 @@ function ModDashboard(_ref52) {
       color: SLATE
     });
   }
-  if (pSinFacturar > 0.01) {
+  detSinFacturar.slice().sort(function (x, y) { return y.monto - x.monto; }).forEach(function (x) {
     alertasExtra.push({
-      msg: "Contrato sin facturar \u00B7 " + proySinFact + " proyecto" + (proySinFact > 1 ? "s" : "") + " activo" + (proySinFact > 1 ? "s" : ""),
-      monto: pSinFacturar,
+      msg: "Contrato sin facturar \u00B7 " + x.nombre,
+      monto: x.monto,
       color: AMBER
     });
-  }
+  });
   var alertas = [].concat(alertasExtra, _toConsumableArray(factVencidas.map(function (f) {
     var _clientes$find1;
     return {
