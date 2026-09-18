@@ -3687,6 +3687,15 @@ function ProductoDetalle(_ref37) {
   }).map(function(f) {
     return clientes.find(function(c) { return c.id === f.clienteId; });
   }).filter(Boolean);
+  var feesProducto = (data.fees || []).filter(function(f) {
+    return (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase();
+  }).slice().sort(function(a, b) {
+    var aa = (a.estado || "Activo") === "Activo" ? 0 : 1;
+    var bb = (b.estado || "Activo") === "Activo" ? 0 : 1;
+    if (aa !== bb) return aa - bb;
+    return String(a.nombre || "").localeCompare(String(b.nombre || ""));
+  });
+  var feesInactivos = feesProducto.length - clientesActivos.length;
   var inversion = freshProd.inversion || [];
   var totalInvertido = inversion.reduce(function(s, x) { return s + (x.monto || 0); }, 0);
   var totalPagado = inversion.filter(function(x) { return x.estado === "Pagado" || x.estado === "Recuperado"; }).reduce(function(s, x) { return s + (x.monto || 0); }, 0);
@@ -3707,7 +3716,7 @@ function ProductoDetalle(_ref37) {
   var pendienteRecuperar = Math.max(0, totalInvertido - ingresosAcumulados);
   var mesesBreakEven = mrrProducto > 0 && pendienteRecuperar > 0 ? Math.ceil(pendienteRecuperar / mrrProducto) : null;
   var tipoColor = { "Nueva funcionalidad": MAGENTA, "Mejora": PURPLE, "Fix": AMBER, "Deuda t\xE9cnica": SLATE };
-  var TABS = [{ id: "backlog", label: "Backlog" }, { id: "recurrentes", label: "Costos recurrentes" }, { id: "clientes_prod", label: "Clientes activos" }, { id: "inversion", label: "Inversi\xF3n" }];
+  var TABS = [{ id: "backlog", label: "Backlog" }, { id: "recurrentes", label: "Costos recurrentes" }, { id: "clientes_prod", label: "Clientes" }, { id: "inversion", label: "Inversi\xF3n" }];
 
   function saveProd() {
     setData(function(d) {
@@ -3872,23 +3881,26 @@ function ProductoDetalle(_ref37) {
       React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", marginBottom: 12 } },
         React.createElement("button", { style: cs.btnP, onClick: function() { setPf({ id: uid(), producto: freshProd.nombre, estado: "Activo", frecuencia: "Mensual" }); setModal("nuevoFee"); } }, "+ Agregar cliente activo")
       ),
-      clientesActivos.length === 0 && React.createElement("div", { style: _objectSpread(_objectSpread({}, cs.card), {}, { textAlign: "center", padding: "2rem", color: SLATE }) }, "Sin clientes activos con este producto."),
-      clientesActivos.map(function(x) {
-        var fee = (data.fees || []).find(function(f) {
-          return f.clienteId === x.id && (f.producto || "").toLowerCase() === (freshProd.nombre || "").toLowerCase();
-        });
+      feesProducto.length === 0 && React.createElement("div", { style: _objectSpread(_objectSpread({}, cs.card), {}, { textAlign: "center", padding: "2rem", color: SLATE }) }, "Sin clientes vinculados a este producto."),
+      feesProducto.length > 0 && React.createElement("div", { style: { fontSize: 11, color: SLATE, marginBottom: 8 } },
+        clientesActivos.length + " activo" + (clientesActivos.length === 1 ? "" : "s") +
+        (feesInactivos > 0 ? " \u00B7 " + feesInactivos + " inactivo" + (feesInactivos === 1 ? "" : "s") + " (no suman al MRR)" : "")
+      ),
+      feesProducto.map(function(fee) {
+        var x = clientes.find(function(c) { return c.id === fee.clienteId; }) || { id: fee.clienteId || fee.id, nombre: fee.nombre || "Cliente sin nombre" };
+        var activo = (fee.estado || "Activo") === "Activo";
         var esPagoUnico = fee && fee.frecuencia === "Pago \xFAnico";
         var labelMonto = fee ? (esPagoUnico ? fmt(fee.fee) : fmt(fee.fee) + "/mes") : null;
-        return React.createElement("div", { key: x.id, style: _objectSpread(_objectSpread({}, cs.card), {}, { display: "flex", justifyContent: "space-between", alignItems: "center" }) },
+        return React.createElement("div", { key: fee.id, style: _objectSpread(_objectSpread({}, cs.card), {}, { display: "flex", justifyContent: "space-between", alignItems: "center", opacity: activo ? 1 : 0.6 }) },
           React.createElement("div", null,
-            React.createElement("div", { style: { fontWeight: 700, color: NAVY, fontFamily: "Poppins,sans-serif" } }, x.nombre),
+            React.createElement("div", { style: { fontWeight: 700, color: activo ? NAVY : SLATE, fontFamily: "Poppins,sans-serif" } }, x.nombre),
             React.createElement("div", { style: { fontSize: 12, color: SLATE, marginTop: 2 } },
               x.sector || "", " \xB7 ", x.pais || "",
               fee && fee.frecuencia ? React.createElement("span", { style: { marginLeft: 6, color: PURPLE } }, " \xB7 ", fee.frecuencia) : null
             )
           ),
           React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-            labelMonto && React.createElement("span", { style: { fontWeight: 700, color: MAGENTA } }, labelMonto),
+            labelMonto && React.createElement("span", { style: { fontWeight: 700, color: activo ? MAGENTA : SLATE } }, labelMonto),
             React.createElement(Badge, { estado: fee ? (fee.estado || "Activo") : x.estado }),
             fee && React.createElement("button", { style: cs.btnX, onClick: function() { setPf(Object.assign({}, fee)); setModal("editFee"); } }, "Editar"),
             fee && React.createElement("button", { style: Object.assign({}, cs.btnX, { color: RED }), onClick: function() {
@@ -6710,6 +6722,44 @@ function ModDashboard(_ref52) {
   }, 0);
   var totalRec = recBase + recCli;
   var margen = mrr - gastosCorp - totalRec;
+  var recPagadoPeriodo = recTodos(data).reduce(function (t, it) {
+    return t + (it.pagos || []).reduce(function (u, pg) {
+      return u + (mesDePago(pg) >= rDesde && mesDePago(pg) <= rHasta && pg.estado === "Pagado" ? (pg.monto || 0) : 0);
+    }, 0);
+  }, 0);
+  var recPendPeriodo = recTodos(data).reduce(function (t, it) {
+    return t + (it.pagos || []).reduce(function (u, pg) {
+      return u + (mesDePago(pg) >= rDesde && mesDePago(pg) <= rHasta &&
+        ["Pendiente", "Mora"].indexOf(pg.estado) >= 0 ? (pg.monto || 0) : 0);
+    }, 0);
+  }, 0);
+  var resultadoPeriodo = cobrado - gastosPeriodo - recPagadoPeriodo;
+
+  // ── Caja estimada (histórico completo, criterio de caja) ──
+  var cobradoHist = facturasVig.filter(function (f) { return f.estado === "Pagada"; })
+    .reduce(function (t, f) { return t + (f.monto || 0); }, 0);
+  var costosProyPagados = (data.proyectos || []).reduce(function (t, pr) {
+    return t + (pr.gastos || []).filter(function (x) { return x.estado !== "Pendiente"; })
+      .reduce(function (u, x) { return u + (x.monto || 0); }, 0);
+  }, 0);
+  var gastosPagadosHist = (data.gastos || []).filter(function (g) {
+    return gastoVigente(g) && (g.estado || "Pagado") === "Pagado";
+  }).reduce(function (t, g) { return t + (g.monto || 0); }, 0);
+  var recPagadosHist = recTodos(data).reduce(function (t, it) {
+    return t + (it.pagos || []).filter(function (pg) { return pg.estado === "Pagado"; })
+      .reduce(function (u, pg) { return u + (pg.monto || 0); }, 0);
+  }, 0);
+  var pagosSocios = (data.distribucion || []).filter(function (x) {
+    return x.estado === "Pagado";
+  }).reduce(function (t, x) { return t + (x.monto || 0); }, 0);
+  var cajaEst = cobradoHist - costosProyPagados - gastosPagadosHist - recPagadosHist - pagosSocios;
+  var burn = totalRec + gastosCorp;
+  var autonomia = burn > 0 ? cajaEst / burn : null;
+  var cobroRecPeriodo = facturasRango.filter(function (f) {
+    return f.estado === "Pagada" && f.origen !== "Proyecto";
+  }).reduce(function (t, f) { return t + (f.monto || 0); }, 0);
+  var cubiertoPorCaja = Math.max(0, gastosPeriodo + recPagadoPeriodo - cobroRecPeriodo);
+  var pm = function pm(v) { return fmt(v / nMeses) + "/mes"; };
   var proyActivos = (data.proyectos || []).filter(function (p) { return !p.estado || p.estado === "Activo"; });
   var pContrato = 0, pPresup = 0, pPagado = 0, pCobrado = 0, pSinFacturar = 0, proySinFact = 0;
   proyActivos.forEach(function (pr) {
@@ -6875,35 +6925,134 @@ function ModDashboard(_ref52) {
     }, "Volver a este mes")
   ),
 
-  elD(SecTitle, { t: "Negocio recurrente", s: rLabel + " \u00B7 " + (nMeses > 1 ? "promedio mensual del per\u00EDodo" : "cifras mensuales") }),
+  elD(SecTitle, {
+    t: "Caja y autonom\u00EDa",
+    s: "Estimado seg\u00FAn lo registrado \u00B7 hist\u00F3rico completo"
+  }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Caja estimada",
+      val: fmt(cajaEst),
+      color: cajaEst > 0 ? GREEN : RED,
+      sub: "Cobrado \u2212 costos \u2212 gastos \u2212 socios"
+    }),
+    elD(Metric, {
+      label: "Salida mensual (burn)",
+      val: fmt(burn),
+      color: RED,
+      sub: "Recurrentes " + fmt(totalRec) + " + gastos " + fmt(gastosCorp)
+    }),
+    elD(Metric, {
+      label: "Autonom\u00EDa",
+      val: autonomia === null ? "\u2014" : (autonomia < 0 ? "0" : autonomia.toFixed(1)) + " meses",
+      color: autonomia === null ? SLATE : autonomia >= 6 ? GREEN : autonomia >= 3 ? AMBER : RED,
+      sub: burn > 0 ? "Caja \u00F7 salida mensual" : "Sin salida mensual"
+    }),
+    elD(Metric, {
+      label: "Cubierto por caja",
+      val: fmt(cubiertoPorCaja),
+      color: cubiertoPorCaja > 0 ? AMBER : GREEN,
+      sub: cubiertoPorCaja > 0 ? "Recurrente sin ingreso propio \u00B7 " + rLabel : "El recurrente se autofinancia"
+    })
+  ),
+
+  elD(SecTitle, {
+    t: "Resultado del per\u00EDodo",
+    s: rLabel + " \u00B7 totales acumulados \u00B7 criterio de caja"
+  }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Cobrado",
+      val: fmt(cobrado),
+      color: GREEN,
+      sub: nMeses > 1 ? pm(cobrado) : "Facturas pagadas"
+    }),
+    elD(Metric, {
+      label: "Gastos",
+      val: fmt(gastosPeriodo),
+      color: RED,
+      sub: (nMeses > 1 ? pm(gastosPeriodo) : "Gastos del mes") +
+        (gastosCorpPend > 0 ? " \u00B7 " + fmt(gastosCorpPend) + " pendiente" : "")
+    }),
+    elD(Metric, {
+      label: "Recurrentes pagados",
+      val: fmt(recPagadoPeriodo),
+      color: PURPLE,
+      sub: (nMeses > 1 ? pm(recPagadoPeriodo) : "Pagos registrados") +
+        (recPendPeriodo > 0 ? " \u00B7 " + fmt(recPendPeriodo) + " pendiente" : "")
+    }),
+    elD(Metric, {
+      label: "Resultado",
+      val: fmt(resultadoPeriodo),
+      color: resultadoPeriodo >= 0 ? GREEN : RED,
+      sub: (nMeses > 1 ? pm(resultadoPeriodo) + " \u00B7 " : "") + "Cobrado \u2212 gastos \u2212 recurrentes"
+    })
+  ),
+
+  elD(SecTitle, {
+    t: "Facturaci\u00F3n",
+    s: rLabel + " \u00B7 por fecha de emisi\u00F3n" + (sinFecha.length > 0 ? " (incl. " + sinFecha.length + " sin fecha)" : "")
+  }),
+  elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
+    elD(Metric, {
+      label: "Facturado",
+      val: fmt(facturado),
+      color: NAVY,
+      sub: "Hist\u00F3rico total " + fmt(facturadoHist) +
+        (montoBorradores > 0 ? " \u00B7 excl. borradores" : "")
+    }),
+    elD(Metric, {
+      label: "Cobrado",
+      val: fmt(cobrado),
+      color: GREEN,
+      sub: facturado > 0 ? (cobrado / facturado * 100).toFixed(0) + "% del facturado" : "\u2014"
+    }),
+    elD(Metric, {
+      label: "Por cobrar",
+      val: fmt(porCobrar),
+      color: AMBER,
+      sub: "Facturas emitidas sin pagar"
+    }),
+    elD(Metric, {
+      label: "Sin facturar",
+      val: fmt(pSinFacturar),
+      color: pSinFacturar > 0.01 ? AMBER : GREEN,
+      sub: "Contratos de proyectos activos"
+    })
+  ),
+
+  elD(SecTitle, {
+    t: "Tasa mensual actual",
+    s: "Foto de hoy \u00B7 no depende del per\u00EDodo"
+  }),
   elD("div", { style: { display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" } },
     elD(Metric, {
       label: "MRR activo",
       val: fmt(mrr),
       color: MAGENTA,
-      sub: "Hoy \u00B7 ARR proyectado " + fmt(arr)
+      sub: "ARR proyectado " + fmt(arr)
     }),
     elD(Metric, {
-      label: "Recurrentes/mes",
+      label: "Recurrentes comprometidos",
       val: fmt(totalRec),
       color: PURPLE,
       sub: mrr > 0 ? (totalRec / mrr * 100).toFixed(0) + "% del MRR" : "Sin MRR activo"
     }),
     elD(Metric, {
-      label: nMeses > 1 ? "Gastos prom./mes" : "Gastos del mes",
+      label: "Gastos prom./mes",
       val: fmt(gastosCorp),
       color: RED,
-      sub: (nMeses > 1 ? "Total per\u00EDodo " + fmt(gastosPeriodo) : "Criterio de caja") +
-        (gastosCorpPend > 0 ? " \u00B7 " + fmt(gastosCorpPend) + " pendiente" : "")
+      sub: nMeses > 1 ? "Promedio de " + nMeses + " meses" : "Gastos del mes"
     }),
     elD(Metric, {
-      label: nMeses > 1 ? "Margen prom./mes" : "Margen neto/mes",
-      val: fmt(margen),
-      color: margen >= 0 ? GREEN : RED,
-      sub: mrr > 0 ? (margen / mrr * 100).toFixed(0) + "% del MRR" : "MRR \u2212 recurrentes \u2212 gastos"
+      label: margen >= 0 ? "Margen mensual te\u00F3rico" : "Costo de sostener productos",
+      val: fmt(Math.abs(margen)),
+      color: margen >= 0 ? GREEN : AMBER,
+      sub: margen >= 0
+        ? "MRR \u2212 recurrentes \u2212 gastos prom."
+        : "Inversi\u00F3n mensual mientras no hay MRR"
     })
   ),
-
   mrr > 0 && elD("div", { style: Object.assign({}, cs.card, { padding: "12px 14px", marginBottom: 20 }) },
     elD("div", {
       style: { fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 8, fontFamily: "Poppins,sans-serif" }
@@ -6941,38 +7090,6 @@ function ModDashboard(_ref52) {
     margen < 0 && elD("div", {
       style: { fontSize: 11, color: RED, marginTop: 6 }
     }, "El costo recurrente supera al MRR de este mes.")
-  ),
-
-  elD(SecTitle, {
-    t: "Facturaci\u00F3n",
-    s: rLabel + " \u00B7 por fecha de emisi\u00F3n" + (sinFecha.length > 0 ? " (incl. " + sinFecha.length + " sin fecha)" : "")
-  }),
-  elD("div", { style: { display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" } },
-    elD(Metric, {
-      label: "Facturado",
-      val: fmt(facturado),
-      color: NAVY,
-      sub: "Hist\u00F3rico total " + fmt(facturadoHist) +
-        (montoBorradores > 0 ? " \u00B7 excl. borradores" : "")
-    }),
-    elD(Metric, {
-      label: "Cobrado",
-      val: fmt(cobrado),
-      color: GREEN,
-      sub: facturado > 0 ? (cobrado / facturado * 100).toFixed(0) + "% del facturado" : "\u2014"
-    }),
-    elD(Metric, {
-      label: "Por cobrar",
-      val: fmt(porCobrar),
-      color: AMBER,
-      sub: "Facturas emitidas sin pagar"
-    }),
-    elD(Metric, {
-      label: "Sin facturar",
-      val: fmt(pSinFacturar),
-      color: pSinFacturar > 0.01 ? AMBER : GREEN,
-      sub: "Contratos de proyectos activos"
-    })
   ),
 
   proyActivos.length > 0 && elD(SecTitle, { t: "Proyectos activos", s: proyActivos.length + " proyecto" + (proyActivos.length > 1 ? "s" : "") + " \u00B7 ciclo completo \u00B7 no depende del per\u00EDodo" }),
